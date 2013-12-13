@@ -6,20 +6,21 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Snow.Core
 {
-    public class DocumentDocumentStore : IDocumentStore
+    public class DocumentStore : IDocumentStore
     {
         private DirectoryInfo _dataDirectory;
 
         public void Initialize()
         {
             _dataDirectory = new DirectoryInfo(DataLocation);
-            if(!_dataDirectory.Exists)
+            if (!_dataDirectory.Exists)
                 throw new DirectoryNotFoundException(String.Format("The DataLocation '{0}' doesn't exist", DataLocation));
             _dataDirectory.MoveTo(Name);
-            if(!_dataDirectory.Exists)
+            if (!_dataDirectory.Exists)
                 _dataDirectory.Create();
         }
 
@@ -35,13 +36,20 @@ namespace Snow.Core
     public interface IDocumentStore
     {
         void Initialize();
-        IDocumentSession OpenSession(); 
+        IDocumentSession OpenSession();
         string Name { get; set; }
         string DataLocation { get; set; }
     }
 
     public class DocumentSession : IDocumentSession
     {
+        private readonly IDocumentStore _store;
+
+        public DocumentSession(IDocumentStore store)
+        {
+            _store = store;
+        }
+
         public void Get<TDocument>(object key)
         {
             throw new NotImplementedException();
@@ -63,5 +71,24 @@ namespace Snow.Core
         void Get<TDocument>(object key);
         void Store<TDocument>(TDocument document);
         void SaveChanges();
+    }
+
+    public class JsonNet : IDocumentSerializer
+    {
+        public string Serialize<TDocument>(TDocument value)
+        {
+           return JsonConvert.SerializeObject(value);
+        }
+
+        public TDocument Deserialize<TDocument>(string serialized)
+        {
+            return JsonConvert.DeserializeObject<TDocument>(serialized);
+        }
+    }
+
+    public interface IDocumentSerializer
+    {
+        string Serialize<TDocument>(TDocument value);
+        TDocument Deserialize<TDocument>(string serialized);
     }
 }
