@@ -41,35 +41,10 @@ namespace Snow.Core
         string DataLocation { get; set; }
     }
 
-    public class DocumentSession : IDocumentSession
-    {
-        private readonly IDocumentStore _store;
-
-        public DocumentSession(IDocumentStore store)
-        {
-            _store = store;
-        }
-
-        public void Get<TDocument>(object key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Store<TDocument>(TDocument document)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SaveChanges()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public interface IDocumentSession
     {
-        void Get<TDocument>(object key);
-        void Store<TDocument>(TDocument document);
+        TDocument Get<TDocument>(object key);
+        void Store<TDocument>(TDocument document, object key);
         void SaveChanges();
     }
 
