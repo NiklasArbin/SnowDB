@@ -1,38 +1,101 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reactive.Disposables;
+using System.Text;
+using log4net;
+using Snow.Core.Serializers;
 
 namespace Snow.Core
 {
+    public class SnowDocument : IObservable<SnowDocument>
+    {
+        public string Key { get; set; }
+        public string Content { get; set; }
+
+        public IDisposable Subscribe(IObserver<SnowDocument> observer)
+        {
+            return Disposable.Empty;
+        }
+    }
+
     public class DocumentSession : IDocumentSession
     {
+        private ILog _log = LogManager.GetLogger(typeof(DocumentSession));
+
         private readonly IDocumentStore _store;
+        private readonly IDocumentFileNameProvider _fileNameProvider;
         private readonly IDocumentSerializer _serializer;
-        private readonly string _databaseFilePath;
-        private const string FileExtension = ".json";
+
+
+        private readonly Encoding _encoding = new UTF8Encoding();
+
+        private Queue<KeyValuePair<string, object>> _pendingChanges;
+        private object _lock = new object();
 
         public DocumentSession(IDocumentStore store, IDocumentSerializer serializer)
         {
             _store = store;
-            _serializer = serializer;
-            _databaseFilePath = String.Format(@"{0}\{1}\", _store.DataLocation, store.Name);
+            _fileNameProvider = new DocumentFileNameProvider(store.DataLocation, store.DatabaseName);
+            _serializer = serializer; 
+            _pendingChanges = new Queue<KeyValuePair<string, object>>();
         }
 
-        public TDocument Get<TDocument>(object key)
+        private void SubscribeToDocument(IObservable<SnowDocument> document)
         {
-            return _serializer.Deserialize<TDocument>(File.ReadAllText(_databaseFilePath + key + FileExtension));
+            document.Subscribe(x => _log.DebugFormat("Subscribe triggered for document with key {0}", x.Key));
         }
 
-        public void Store<TDocument>(TDocument document, object key)
+        public TDocument Get<TDocument>(string key)
         {
-            using (var writer = new StreamWriter(File.Create(_databaseFilePath + key + FileExtension)))
+            var file = _fileNameProvider.GetDocumentFile(key);
+            if (!file.Exists)
+                throw new DocumentNotFoundException(String.Format("Document {0} does not exist", key));
+            var content = string.Empty;
+            using (var sr = file.OpenText())
             {
-                writer.Write(_serializer.Serialize(document));
+                content = sr.ReadToEnd();
+            }
+            return _serializer.Deserialize<TDocument>(content);
+        }
+
+        public void Store<TDocument>(TDocument document, string key)
+        {
+            lock (_lock)
+            {
+                _pendingChanges.Enqueue(new KeyValuePair<string, object>(key, document));
             }
         }
 
         public void SaveChanges()
         {
-            throw new NotImplementedException();
+            lock (_lock)
+            {
+                while (_pendingChanges.Any())
+                {
+                    var change = _pendingChanges.Dequeue();
+
+                    using (var fileStream = new FileStream(_fileNameProvider.GetDocumentFile(change.Key).FullName, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        using (var writer = new StreamWriter(fileStream))
+                        {
+                            writer.Write(_serializer.Serialize((dynamic)change.Value));
+                        }
+                    }
+                }
+            }
+        }
+
+        private void EnsureFileLocks()
+        {
+
+        }
+
+
+        public void Dispose()
+        {
+
         }
     }
 }
