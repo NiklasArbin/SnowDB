@@ -60,11 +60,15 @@ namespace Snow.Core
             return _serializer.Deserialize<TDocument>(content);
         }
 
-        public void Store<TDocument>(TDocument document, string key)
+        public void Save<TDocument>(TDocument document, string key)
         {
             lock (_lock)
             {
-                _pendingChanges.Enqueue(new KeyValuePair<string, object>(key, document));
+                var file = _fileNameProvider.GetDocumentFile(key);
+                using (var stream = new StreamWriter(file.Open(FileMode.OpenOrCreate, FileAccess.Write), _encoding))
+                {
+                   stream.Write(_serializer.Serialize(document));
+                }
             }
         }
 

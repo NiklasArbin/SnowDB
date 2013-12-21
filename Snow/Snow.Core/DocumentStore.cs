@@ -18,8 +18,8 @@ namespace Snow.Core
                 throw new DirectoryNotFoundException(String.Format("The directory '{0}' doesn't exist", DataLocation));
 
             var dataDirectory = new DirectoryInfo(DataLocation);
-            string dbDir = dataDirectory.FullName + DatabaseName;
-            if (Directory.Exists(dbDir))
+            string dbDir = dataDirectory.FullName +"\\"+ DatabaseName;
+            if (!Directory.Exists(dbDir))
                 Directory.CreateDirectory(dbDir);
         }
 
