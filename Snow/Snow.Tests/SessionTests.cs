@@ -39,7 +39,6 @@ namespace Snow.Tests
             }
 
             fileNameProvider.GetDocumentFile(key).Exists.Should().BeTrue();
-
         }
     }
 }

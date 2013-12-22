@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="DocumentFileNameProvider.cs" />
     <Compile Include="DocumentNotFoundException.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Serializers\IDocumentSerializer.cs" />
     <Compile Include="DocumentSession.cs" />
     <Compile Include="DocumentStore.cs" />

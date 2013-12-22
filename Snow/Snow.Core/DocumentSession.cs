@@ -38,7 +38,7 @@ namespace Snow.Core
         {
             _store = store;
             _fileNameProvider = new DocumentFileNameProvider(store.DataLocation, store.DatabaseName);
-            _serializer = serializer; 
+            _serializer = serializer;
             _pendingChanges = new Queue<KeyValuePair<string, object>>();
         }
 
@@ -53,7 +53,7 @@ namespace Snow.Core
             if (!file.Exists)
                 throw new DocumentNotFoundException(String.Format("Document {0} does not exist", key));
             var content = string.Empty;
-            using (var sr = file.OpenText())
+            using (var sr = new StreamReader(file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)))
             {
                 content = sr.ReadToEnd();
             }
@@ -65,9 +65,9 @@ namespace Snow.Core
             lock (_lock)
             {
                 var file = _fileNameProvider.GetDocumentFile(key);
-                using (var stream = new StreamWriter(file.Open(FileMode.OpenOrCreate, FileAccess.Write), _encoding))
+                using (var stream = new StreamWriter(file.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None), _encoding))
                 {
-                   stream.Write(_serializer.Serialize(document));
+                    stream.Write(_serializer.Serialize(document));
                 }
             }
         }
