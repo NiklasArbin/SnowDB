@@ -1,26 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
+using System.Transactions;
 using log4net;
 using Snow.Core.Serializers;
 
 namespace Snow.Core
 {
-    public class SnowDocument : IObservable<SnowDocument>
-    {
-        public string Key { get; set; }
-        public string Content { get; set; }
-
-        public IDisposable Subscribe(IObserver<SnowDocument> observer)
-        {
-            return Disposable.Empty;
-        }
-    }
-
-    public class DocumentSession : IDocumentSession
+   
+    public class DocumentSession : IDocumentSession, IEnlistmentNotification
     {
         private ILog _log = LogManager.GetLogger(typeof(DocumentSession));
 
@@ -40,11 +32,6 @@ namespace Snow.Core
             _fileNameProvider = new DocumentFileNameProvider(store.DataLocation, store.DatabaseName);
             _serializer = serializer;
             _pendingChanges = new Queue<KeyValuePair<string, object>>();
-        }
-
-        private void SubscribeToDocument(IObservable<SnowDocument> document)
-        {
-            document.Subscribe(x => _log.DebugFormat("Subscribe triggered for document with key {0}", x.Key));
         }
 
         public TDocument Get<TDocument>(string key)
@@ -100,6 +87,26 @@ namespace Snow.Core
         public void Dispose()
         {
 
+        }
+
+        public void Prepare(PreparingEnlistment preparingEnlistment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Commit(Enlistment enlistment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Rollback(Enlistment enlistment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void InDoubt(Enlistment enlistment)
+        {
+            throw new NotImplementedException();
         }
     }
 }
