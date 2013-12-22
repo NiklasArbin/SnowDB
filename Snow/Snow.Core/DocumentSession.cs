@@ -12,7 +12,7 @@ using Snow.Core.Serializers;
 namespace Snow.Core
 {
    
-    public class DocumentSession : IDocumentSession, IEnlistmentNotification
+    public class DocumentSession : IDocumentSession
     {
         private ILog _log = LogManager.GetLogger(typeof(DocumentSession));
 
@@ -45,6 +45,20 @@ namespace Snow.Core
                 content = sr.ReadToEnd();
             }
             return _serializer.Deserialize<TDocument>(content);
+        }
+
+        public bool TryGet<TDocument>(string key, out TDocument document)
+        {
+            try
+            {
+                document = Get<TDocument>(key);
+                return true;
+            }
+            catch (DocumentNotFoundException)
+            {
+                document = default(TDocument);
+                return false;
+            }
         }
 
         public void Save<TDocument>(TDocument document, string key)
