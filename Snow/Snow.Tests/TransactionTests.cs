@@ -1,3 +1,4 @@
+using System;
 using System.Transactions;
 using FluentAssertions;
 using NSpec;
@@ -68,6 +69,26 @@ namespace Snow.Tests
             }
 
             fileNameProvider.GetDocumentFile(key).Exists.Should().BeTrue();
+        }
+        
+        [Test]
+        public void Save_multiple_documents_in_the_same_transaction_should_save_all_documents()
+        {
+            using (var trx = new TransactionScope(TransactionScopeOption.RequiresNew))
+            {
+                var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+                using (var session = store.OpenSession())
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        var document = new TestDocument { SomeString = "blaha" };
+                        session.Save(document, Guid.NewGuid().ToString());
+                    }
+
+                    session.SaveChanges();
+                }
+                trx.Complete();
+            }
         }
     }
 }

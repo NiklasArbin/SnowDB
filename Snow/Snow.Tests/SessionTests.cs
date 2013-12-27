@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Transactions;
 using FluentAssertions;
 using NUnit.Framework;
 using Snow.Core;
@@ -62,6 +60,8 @@ namespace Snow.Tests
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
             var key = "C8D16157-AEEF-461F-A9B0-673CA24E0F64";
+            TestSetup.SafeDeleteDocument(key);
+
             var document = new TestDocument
             {
                 SomeInt = 1,
@@ -76,36 +76,49 @@ namespace Snow.Tests
 
             fileNameProvider.GetDocumentFile(key).Exists.Should().BeTrue();
 
-            
-                using (var session = store.OpenSession())
-                {
-                    session.Delete(key);
-                    session.SaveChanges();
-                }
-            
+
+            using (var session = store.OpenSession())
+            {
+                session.Delete(key);
+                session.SaveChanges();
+            }
+
 
             fileNameProvider.GetDocumentFile(key).Exists.Should().BeFalse();
         }
 
         [Test]
-        public void Save_multiple_documents_in_the_same_transaction_should_save_all_documents()
+        public void Get_should_retrieve_the_document_with_data_intact()
         {
-            using (var trx = new TransactionScope(TransactionScopeOption.RequiresNew))
+            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
+            var key = "C4F3112E-03F6-4F73-8EA8-D93058D5F8B4";
+            TestSetup.SafeDeleteDocument(key);
+            var document = new TestDocument
             {
-                var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
-                using (var session = store.OpenSession())
-                {
-                    for (int i = 0; i < 10; i++)
-                    {
-                        var document = new TestDocument {SomeString = "blaha"};
-                        session.Save(document, Guid.NewGuid().ToString());
-                    }    
+                SomeInt = 1,
+                SomeString = "Stringaling",
+                SomeSubClassProperty = new TestDocument.SomeSubClass()
+            };
 
-                    session.SaveChanges();
-                }
-                trx.Complete();
+            using (var session = store.OpenSession())
+            {
+                session.Save(document, key);
+                session.SaveChanges();
             }
+
+            TestDocument retrievedDocument;
+            using (var session = store.OpenSession())
+            {
+                retrievedDocument = session.Get<TestDocument>(key);
+            }
+
+            retrievedDocument.SomeInt.Should().Be(1);
+            retrievedDocument.SomeString.Should().Be("Stringaling");
+            retrievedDocument.SomeSubClassProperty.Should().BeOfType<TestDocument.SomeSubClass>();
         }
+
+
 
     }
 }

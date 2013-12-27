@@ -39,10 +39,5 @@ namespace Snow.Core.Extensions
         {
             //TODO:Rollback....determine if new or existing
         }
-
-        public bool Equals(IOperation other)
-        {
-            return this.Key == other.Key;
-        }
     }
 }
