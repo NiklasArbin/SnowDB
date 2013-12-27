@@ -4,7 +4,7 @@ using System.Transactions;
 
 namespace Snow.Core.Extensions
 {
-    internal abstract class OperationBase : IOperation, IEnlistmentNotification
+    internal abstract class TransactionalOperation : IOperation, IEnlistmentNotification
     {
         protected IDocumentFileNameProvider FileNameProvider;
         protected Guid ResourceManagerGuid;

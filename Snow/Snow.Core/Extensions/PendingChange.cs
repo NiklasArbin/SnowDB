@@ -13,7 +13,7 @@ namespace Snow.Core.Extensions
         void Execute();
     }
 
-    internal class WriteOperation : OperationBase
+    internal class WriteOperation : TransactionalOperation
     {
         private readonly IDocumentSerializer _serializer;
         private readonly Encoding _encoding;

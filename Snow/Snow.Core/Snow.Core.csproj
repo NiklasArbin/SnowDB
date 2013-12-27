@@ -63,7 +63,7 @@
     <Compile Include="DocumentFileNameProvider.cs" />
     <Compile Include="DocumentNotFoundException.cs" />
     <Compile Include="Extensions\DeleteOperation.cs" />
-    <Compile Include="Extensions\OperationBase.cs" />
+    <Compile Include="Extensions\TransactionalOperation.cs" />
     <Compile Include="Extensions\PendingChange.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Serializers\IDocumentSerializer.cs" />

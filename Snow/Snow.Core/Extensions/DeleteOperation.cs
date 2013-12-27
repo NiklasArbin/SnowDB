@@ -2,7 +2,7 @@ using System;
 
 namespace Snow.Core.Extensions
 {
-    internal class DeleteOperation : OperationBase
+    internal class DeleteOperation : TransactionalOperation
     {   
         public DeleteOperation(IDocumentFileNameProvider fileNameProvider, Guid resourceManagerGuid)
         {
