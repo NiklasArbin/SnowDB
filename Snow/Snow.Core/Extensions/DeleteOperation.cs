@@ -2,7 +2,7 @@ using System;
 
 namespace Snow.Core.Extensions
 {
-    internal class DeleteOperation : TransactionalOperation
+    internal class DeleteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
     {   
         public DeleteOperation(IDocumentFileNameProvider fileNameProvider, Guid resourceManagerGuid)
         {
@@ -12,7 +12,7 @@ namespace Snow.Core.Extensions
 
         public override void Execute()
         {
-            DocumentFile = FileNameProvider.GetDocumentFile(Key);
+            DocumentFile = FileNameProvider.GetDocumentFile<TDocument>(Key);
             if (!DocumentFile.Exists)
                 throw new DocumentNotFoundException("Document {0} does not exist".FormatWith(Key));
 
@@ -31,7 +31,7 @@ namespace Snow.Core.Extensions
                 return;
             }
 
-            FileNameProvider.GetDocumentTransactionBackupFile(Key, ResourceManagerGuid).CopyTo(DocumentFile.FullName, true);
+            FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).CopyTo(DocumentFile.FullName, true);
         }
     }
 }

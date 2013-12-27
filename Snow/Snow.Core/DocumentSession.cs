@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Transactions;
 using log4net;
@@ -22,9 +23,7 @@ namespace Snow.Core
 
 
         private readonly Encoding _encoding = new UTF8Encoding();
-        private Dictionary<string, IOperation> _pendingChanges;
-
-        private object _lock = new object();
+        private readonly Dictionary<string, IOperation> _pendingChanges;
 
         public DocumentSession(IDocumentStore store, IDocumentSerializer serializer)
         {
@@ -35,9 +34,9 @@ namespace Snow.Core
             _resourceGuid = Guid.NewGuid();
         }
 
-        public TDocument Get<TDocument>(string key)
+        public TDocument Get<TDocument>(string key) where TDocument : class
         {
-            var file = _fileNameProvider.GetDocumentFile(key);
+            var file = _fileNameProvider.GetDocumentFile<TDocument>(key);
             if (!file.Exists)
                 throw new DocumentNotFoundException(String.Format("Document {0} does not exist", key));
 
@@ -49,7 +48,7 @@ namespace Snow.Core
             return _serializer.Deserialize<TDocument>(content);
         }
 
-        public bool TryGet<TDocument>(string key, out TDocument document)
+        public bool TryGet<TDocument>(string key, out TDocument document) where TDocument : class
         {
             try
             {
@@ -63,21 +62,21 @@ namespace Snow.Core
             }
         }
 
-        public void Save<TDocument>(TDocument document, string key)
+        public void Save<TDocument>(TDocument document, string key) where TDocument : class
         {
-            AddOperation(new WriteOperation(_fileNameProvider, _serializer, _encoding, _resourceGuid) { Key = key, Document = document });
+            AddOperation<TDocument>(new WriteOperation<TDocument>(_fileNameProvider, _serializer, _encoding, _resourceGuid) { Key = key, Document = document });
         }
 
-        public void Delete(string key)
+        public void Delete<TDocument>(string key) where TDocument : class
         {
-            AddOperation(new DeleteOperation(_fileNameProvider, _resourceGuid) { Key = key });
+            AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, _resourceGuid) { Key = key });
         }
 
         public void SaveChanges()
         {
             var currentTransaction = Transaction.Current;
             if (currentTransaction != null)
-                currentTransaction.EnlistDurable(_resourceGuid, this, EnlistmentOptions.EnlistDuringPrepareRequired);
+                currentTransaction.EnlistDurable(_resourceGuid, this, EnlistmentOptions.None);
 
             foreach (var pendingChange in _pendingChanges.Values)
             {
@@ -85,15 +84,17 @@ namespace Snow.Core
             }
         }
 
-        private void AddOperation(IOperation operation)
+        private void AddOperation<TDocument>(IOperation operation) where TDocument : class
         {
-            if (!_pendingChanges.ContainsKey(operation.Key))
+            var fileName = _fileNameProvider.GetDocumentFile<TDocument>(operation.Key).Name;
+
+            if (!_pendingChanges.ContainsKey(fileName))
             {
-                _pendingChanges.Add(operation.Key, operation);
+                _pendingChanges.Add(fileName, operation);
             }
             else
             {
-                _pendingChanges[operation.Key] = operation;
+                _pendingChanges[fileName] = operation;
             }
         }
 

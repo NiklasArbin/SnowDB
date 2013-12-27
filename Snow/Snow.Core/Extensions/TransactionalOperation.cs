@@ -4,17 +4,24 @@ using System.Transactions;
 
 namespace Snow.Core.Extensions
 {
-    internal abstract class TransactionalOperation : IOperation, IEnlistmentNotification
+    internal class Key<TDocument> where TDocument : class 
+    {
+        public string Value { get; set; }
+    }
+
+    internal abstract class TransactionalOperation<TDocument> : IOperation, IEnlistmentNotification
+        where TDocument : class
     {
         protected IDocumentFileNameProvider FileNameProvider;
         protected Guid ResourceManagerGuid;
         protected FileInfo DocumentFile;
         private FileStream _fileStream;
+
         public string Key { get; set; }
 
         public virtual void Execute()
         {
-            DocumentFile = FileNameProvider.GetDocumentFile(Key);
+            DocumentFile = FileNameProvider.GetDocumentFile<TDocument>(Key);
 
             if (Transaction.Current != null)
             {
@@ -42,14 +49,14 @@ namespace Snow.Core.Extensions
         {
             if (DocumentFile.Exists)
             {
-                DocumentFile.CopyTo(FileNameProvider.GetDocumentTransactionBackupFile(Key, ResourceManagerGuid).FullName);
+                DocumentFile.CopyTo(FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName);
             }
-                
+
             LockFile();
             preparingEnlistment.Prepared();
         }
 
-        
+
 
         void IEnlistmentNotification.Commit(Enlistment enlistment)
         {

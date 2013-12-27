@@ -1,10 +1,4 @@
-﻿using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Snow.Tests
+﻿namespace Snow.Tests
 {
     public class TestDocument
     {
@@ -17,5 +11,10 @@ namespace Snow.Tests
         {
             public double SomeDouble { get; set; }
         }
+    }
+
+    public class TestDocument2
+    {
+        public string AString { get; set; }
     }
 }

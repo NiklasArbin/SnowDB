@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Transactions;
 using Snow.Core.Serializers;
 
 namespace Snow.Core.Extensions
@@ -13,7 +12,7 @@ namespace Snow.Core.Extensions
         void Execute();
     }
 
-    internal class WriteOperation : TransactionalOperation
+    internal class WriteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
     {
         private readonly IDocumentSerializer _serializer;
         private readonly Encoding _encoding;
@@ -31,7 +30,7 @@ namespace Snow.Core.Extensions
         {
             using (var stream = new StreamWriter(DocumentFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None), _encoding))
             {
-                stream.Write(_serializer.Serialize((dynamic)Document));
+                stream.Write(_serializer.Serialize(Document));
             }
         }
 

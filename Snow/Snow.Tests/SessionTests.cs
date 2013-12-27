@@ -37,6 +37,8 @@ namespace Snow.Tests
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
             var key = "77874B42-8093-450D-ADF1-861C55FB232C";
+            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
+
             var document = new TestDocument
             {
                 SomeInt = 1,
@@ -50,8 +52,8 @@ namespace Snow.Tests
                 session.SaveChanges();
             }
 
-            fileNameProvider.GetDocumentFile(key).Exists.Should().BeTrue();
-            fileNameProvider.GetDocumentFile(key).Delete();
+            fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
+            fileNameProvider.GetDocumentFile<TestDocument>(key).Delete();
         }
 
         [Test]
@@ -60,7 +62,7 @@ namespace Snow.Tests
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
             var key = "C8D16157-AEEF-461F-A9B0-673CA24E0F64";
-            TestSetup.SafeDeleteDocument(key);
+            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
 
             var document = new TestDocument
             {
@@ -74,17 +76,17 @@ namespace Snow.Tests
                 session.SaveChanges();
             }
 
-            fileNameProvider.GetDocumentFile(key).Exists.Should().BeTrue();
+            fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
 
 
             using (var session = store.OpenSession())
             {
-                session.Delete(key);
+                session.Delete<TestDocument>(key);
                 session.SaveChanges();
             }
 
 
-            fileNameProvider.GetDocumentFile(key).Exists.Should().BeFalse();
+            fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeFalse();
         }
 
         [Test]
@@ -93,7 +95,7 @@ namespace Snow.Tests
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
             var key = "C4F3112E-03F6-4F73-8EA8-D93058D5F8B4";
-            TestSetup.SafeDeleteDocument(key);
+            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
             var document = new TestDocument
             {
                 SomeInt = 1,
@@ -116,6 +118,43 @@ namespace Snow.Tests
             retrievedDocument.SomeInt.Should().Be(1);
             retrievedDocument.SomeString.Should().Be("Stringaling");
             retrievedDocument.SomeSubClassProperty.Should().BeOfType<TestDocument.SomeSubClass>();
+        }
+
+        [Test]
+        public void Save_should_be_able_to_save_two_different_types_of_documents_with_the_same_key()
+        {
+            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
+            var key = "B4996416-DF48-4F6F-B9F5-04AD151974D6";
+            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
+            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument2>(key).FullName);
+
+            var document = new TestDocument
+            {
+                SomeInt = 1,
+                SomeString = "Stringaling",
+                SomeSubClassProperty = new TestDocument.SomeSubClass()
+            };
+            var document2 = new TestDocument2 {AString = "AString"};
+
+            using (var session = store.OpenSession())
+            {
+                session.Save(document, key);
+                session.Save(document2, key);
+                session.SaveChanges();
+            }
+
+            TestDocument readDocument;
+            TestDocument2 reaDocument2;
+
+            using (var session = store.OpenSession()) 
+            {
+                readDocument = session.Get<TestDocument>(key);
+                reaDocument2 = session.Get<TestDocument2>(key);
+            }
+
+            readDocument.Should().BeOfType<TestDocument>();
+            reaDocument2.Should().BeOfType<TestDocument2>();
         }
 
 
