@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
-using System.Linq;
-using System.Reactive.Disposables;
 using System.Text;
 using System.Transactions;
 using log4net;
+using Snow.Core.Extensions;
 using Snow.Core.Serializers;
 
 namespace Snow.Core
 {
-   
-    public class DocumentSession : IDocumentSession
+
+    public class DocumentSession : IDocumentSession, IEnlistmentNotification
     {
+        private readonly Guid _resourceGuid;
+
         private ILog _log = LogManager.GetLogger(typeof(DocumentSession));
 
         private readonly IDocumentStore _store;
@@ -22,8 +22,8 @@ namespace Snow.Core
 
 
         private readonly Encoding _encoding = new UTF8Encoding();
+        private Dictionary<string, IOperation> _pendingChanges;
 
-        private Queue<KeyValuePair<string, object>> _pendingChanges;
         private object _lock = new object();
 
         public DocumentSession(IDocumentStore store, IDocumentSerializer serializer)
@@ -31,7 +31,8 @@ namespace Snow.Core
             _store = store;
             _fileNameProvider = new DocumentFileNameProvider(store.DataLocation, store.DatabaseName);
             _serializer = serializer;
-            _pendingChanges = new Queue<KeyValuePair<string, object>>();
+            _pendingChanges = new Dictionary<string, IOperation>();
+            _resourceGuid = Guid.NewGuid();
         }
 
         public TDocument Get<TDocument>(string key)
@@ -39,7 +40,8 @@ namespace Snow.Core
             var file = _fileNameProvider.GetDocumentFile(key);
             if (!file.Exists)
                 throw new DocumentNotFoundException(String.Format("Document {0} does not exist", key));
-            var content = string.Empty;
+
+            string content;
             using (var sr = new StreamReader(file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)))
             {
                 content = sr.ReadToEnd();
@@ -63,64 +65,64 @@ namespace Snow.Core
 
         public void Save<TDocument>(TDocument document, string key)
         {
-            lock (_lock)
-            {
-                var file = _fileNameProvider.GetDocumentFile(key);
-                using (var stream = new StreamWriter(file.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None), _encoding))
-                {
-                    stream.Write(_serializer.Serialize(document));
-                }
-            }
+            AddOperation(new WriteOperation(_fileNameProvider, _serializer, _encoding, _resourceGuid) { Key = key, Document = document });
+        }
+
+        public void Delete(string key)
+        {
+            AddOperation(new DeleteOperation(_fileNameProvider, _resourceGuid) { Key = key });
         }
 
         public void SaveChanges()
         {
-            lock (_lock)
-            {
-                while (_pendingChanges.Any())
-                {
-                    var change = _pendingChanges.Dequeue();
+            var currentTransaction = Transaction.Current;
+            if (currentTransaction != null)
+                currentTransaction.EnlistDurable(_resourceGuid, this, EnlistmentOptions.EnlistDuringPrepareRequired);
 
-                    using (var fileStream = new FileStream(_fileNameProvider.GetDocumentFile(change.Key).FullName, FileMode.Create, FileAccess.Write, FileShare.None))
-                    {
-                        using (var writer = new StreamWriter(fileStream))
-                        {
-                            writer.Write(_serializer.Serialize((dynamic)change.Value));
-                        }
-                    }
-                }
+            foreach (var pendingChange in _pendingChanges.Values)
+            {
+                pendingChange.Execute();
             }
         }
 
-        private void EnsureFileLocks()
+        private void AddOperation(IOperation operation)
         {
-
+            if (!_pendingChanges.ContainsKey(operation.Key))
+            {
+                _pendingChanges.Add(operation.Key, operation);
+            }
+            else
+            {
+                _pendingChanges[operation.Key] = operation;
+            }
         }
-
 
         public void Dispose()
         {
 
         }
 
-        public void Prepare(PreparingEnlistment preparingEnlistment)
+        void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
         {
-            throw new NotImplementedException();
+            _fileNameProvider.GetTransactionDirectory(_resourceGuid).Create();
+            preparingEnlistment.Prepared();
         }
 
-        public void Commit(Enlistment enlistment)
+        void IEnlistmentNotification.Commit(Enlistment enlistment)
         {
-            throw new NotImplementedException();
+            var dir = _fileNameProvider.GetTransactionDirectory(_resourceGuid);
+            if (dir.Exists)
+                dir.Delete(true);
         }
 
-        public void Rollback(Enlistment enlistment)
+        void IEnlistmentNotification.Rollback(Enlistment enlistment)
         {
-            throw new NotImplementedException();
+            enlistment.Done();
         }
 
-        public void InDoubt(Enlistment enlistment)
+        void IEnlistmentNotification.InDoubt(Enlistment enlistment)
         {
-            throw new NotImplementedException();
+            enlistment.Done();
         }
     }
 }

@@ -20,7 +20,10 @@ namespace Snow.Core
             var dataDirectory = new DirectoryInfo(DataLocation);
             string dbDir = dataDirectory.FullName +"\\"+ DatabaseName;
             if (!Directory.Exists(dbDir))
-                Directory.CreateDirectory(dbDir);
+            {
+                Directory.CreateDirectory(dbDir).CreateSubdirectory("trx");
+            }
+                
         }
 
         public IDocumentSession OpenSession()

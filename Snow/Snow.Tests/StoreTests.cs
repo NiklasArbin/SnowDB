@@ -58,7 +58,7 @@ namespace Snow.Tests
         {
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, "NonExistingDatabase");
             if (fileNameProvider.DatabaseDirectory.Exists)
-                fileNameProvider.DatabaseDirectory.Delete();
+                fileNameProvider.DatabaseDirectory.Delete(true);
         }
     }
 

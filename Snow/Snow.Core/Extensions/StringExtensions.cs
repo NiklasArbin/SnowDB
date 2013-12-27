@@ -12,7 +12,7 @@ namespace Snow.Core.Extensions
         {
             return string.IsNullOrWhiteSpace(value);
         }
-        public static string Format(this string value, params object[] args)
+        public static string FormatWith(this string value, params object[] args)
         {
             return string.Format(value, args);
         }

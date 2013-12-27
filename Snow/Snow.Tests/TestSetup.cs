@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.CompilerServices;
 using NUnit.Framework;
 
 namespace Snow.Tests
@@ -14,6 +15,12 @@ namespace Snow.Tests
         {
             if (!Directory.Exists(DataDir))
                 Directory.CreateDirectory(DataDir);
+        }
+
+        public static void SafeDeleteDocument(string path)
+        {
+            if(File.Exists(path))
+                File.Delete(path);
         }
     }
 }

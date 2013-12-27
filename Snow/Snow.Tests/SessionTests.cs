@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Transactions;
 using FluentAssertions;
 using NUnit.Framework;
 using Snow.Core;
@@ -48,9 +49,63 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Save(document, key);
+                session.SaveChanges();
             }
 
             fileNameProvider.GetDocumentFile(key).Exists.Should().BeTrue();
+            fileNameProvider.GetDocumentFile(key).Delete();
         }
+
+        [Test]
+        public void Delete_should_delete_the_document()
+        {
+            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
+            var key = "C8D16157-AEEF-461F-A9B0-673CA24E0F64";
+            var document = new TestDocument
+            {
+                SomeInt = 1,
+                SomeString = "Stringaling"
+            };
+
+            using (var session = store.OpenSession())
+            {
+                session.Save(document, key);
+                session.SaveChanges();
+            }
+
+            fileNameProvider.GetDocumentFile(key).Exists.Should().BeTrue();
+
+            
+                using (var session = store.OpenSession())
+                {
+                    session.Delete(key);
+                    session.SaveChanges();
+                }
+            
+
+            fileNameProvider.GetDocumentFile(key).Exists.Should().BeFalse();
+        }
+
+        [Test]
+        public void Save_multiple_documents_in_the_same_transaction_should_save_all_documents()
+        {
+            using (var trx = new TransactionScope(TransactionScopeOption.RequiresNew))
+            {
+                var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+                using (var session = store.OpenSession())
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        var document = new TestDocument {SomeString = "blaha"};
+                        session.Save(document, Guid.NewGuid().ToString());
+                    }    
+
+                    session.SaveChanges();
+                }
+                trx.Complete();
+            }
+        }
+
     }
 }

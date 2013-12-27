@@ -57,6 +57,7 @@
     <Compile Include="SessionTests.cs" />
     <Compile Include="StoreTests.cs" />
     <Compile Include="TestSetup.cs" />
+    <Compile Include="TransactionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
