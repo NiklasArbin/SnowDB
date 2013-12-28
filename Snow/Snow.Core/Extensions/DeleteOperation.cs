@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace Snow.Core.Extensions
 {
@@ -19,8 +20,9 @@ namespace Snow.Core.Extensions
             base.Execute();
         }
 
-        protected override void Commit()
+        protected override void Commit(FileStream lockedFileStream)
         {
+            lockedFileStream.Close();
             DocumentFile.Delete();
         }
 

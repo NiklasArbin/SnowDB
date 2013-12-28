@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security.AccessControl;
 using System.Transactions;
 
 namespace Snow.Core.Extensions
@@ -29,20 +30,16 @@ namespace Snow.Core.Extensions
             }
             else
             {
-                Commit();
+                LockFile();
+                Commit(_fileStream);
             }
         }
 
-        protected abstract void Commit();
+        protected abstract void Commit(FileStream lockedFileStream);
 
         private void LockFile()
         {
             _fileStream = DocumentFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-        }
-
-        private void UnlockFile()
-        {
-            _fileStream.Close();
         }
 
         void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
@@ -60,8 +57,7 @@ namespace Snow.Core.Extensions
 
         void IEnlistmentNotification.Commit(Enlistment enlistment)
         {
-            UnlockFile();
-            Commit();
+            Commit(_fileStream);
             enlistment.Done();
         }
         protected abstract void Rollback();

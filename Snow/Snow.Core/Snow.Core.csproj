@@ -66,6 +66,7 @@
     <Compile Include="Extensions\TransactionalOperation.cs" />
     <Compile Include="Extensions\PendingChange.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Extensions\WriteOperation.cs" />
     <Compile Include="Serializers\IDocumentSerializer.cs" />
     <Compile Include="DocumentSession.cs" />
     <Compile Include="DocumentStore.cs" />
