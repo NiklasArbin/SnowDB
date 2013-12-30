@@ -21,10 +21,7 @@ namespace Snow.Core
 
         protected override void Commit(IDocumentFile lockedFileStream)
         {
-            using (var stream = new StreamWriter(lockedFileStream.GetStream()))
-            {
-                stream.Write(_serializer.Serialize(Document));
-            }
+            lockedFileStream.Write(_serializer.Serialize(Document));
         }
 
         protected override void Rollback()

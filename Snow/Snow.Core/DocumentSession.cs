@@ -40,12 +40,8 @@ namespace Snow.Core
             if (!file.Exists)
                 throw new DocumentNotFoundException(String.Format("Document {0} does not exist", key));
 
-            string content;
-            using (var sr = new StreamReader(file.GetStream()))
-            {
-                content = sr.ReadToEnd();
-            }
-            return _serializer.Deserialize<TDocument>(content);
+            
+            return _serializer.Deserialize<TDocument>(file.Read());
         }
 
         public bool TryGet<TDocument>(string key, out TDocument document) where TDocument : class
