@@ -11,7 +11,7 @@ using Snow.Core.Serializers;
 namespace Snow.Core
 {
 
-    public class DocumentSession : IDocumentSession, IEnlistmentNotification
+    public class DocumentSession : IDocumentSession
     {
         private readonly Guid _resourceGuid;
 
@@ -70,14 +70,17 @@ namespace Snow.Core
 
         public void SaveChanges()
         {
-            var currentTransaction = Transaction.Current;
-            if (currentTransaction != null)
-                currentTransaction.EnlistDurable(_resourceGuid, this, EnlistmentOptions.None);
+            var dir = _fileNameProvider.GetTransactionDirectory(_resourceGuid);
+            if (Transaction.Current != null)
+                dir.Create();
 
             foreach (var pendingChange in _pendingChanges.Values)
             {
                 pendingChange.Execute();
             }
+
+            if (dir.Exists)
+                dir.Delete(true);
         }
 
         private void AddOperation<TDocument>(IOperation operation) where TDocument : class
@@ -97,29 +100,6 @@ namespace Snow.Core
         public void Dispose()
         {
 
-        }
-
-        void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
-        {
-            _fileNameProvider.GetTransactionDirectory(_resourceGuid).Create();
-            preparingEnlistment.Prepared();
-        }
-
-        void IEnlistmentNotification.Commit(Enlistment enlistment)
-        {
-            var dir = _fileNameProvider.GetTransactionDirectory(_resourceGuid);
-            if (dir.Exists)
-                dir.Delete(true);
-        }
-
-        void IEnlistmentNotification.Rollback(Enlistment enlistment)
-        {
-            enlistment.Done();
-        }
-
-        void IEnlistmentNotification.InDoubt(Enlistment enlistment)
-        {
-            enlistment.Done();
         }
     }
 }
