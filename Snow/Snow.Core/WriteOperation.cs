@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using Snow.Core.Serializers;
 
-namespace Snow.Core.Extensions
+namespace Snow.Core
 {
     internal class WriteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
     {

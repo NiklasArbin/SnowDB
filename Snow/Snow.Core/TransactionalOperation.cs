@@ -1,9 +1,8 @@
 using System;
 using System.IO;
-using System.Security.AccessControl;
 using System.Transactions;
 
-namespace Snow.Core.Extensions
+namespace Snow.Core
 {
     internal class Key<TDocument> where TDocument : class 
     {
