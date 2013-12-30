@@ -19,9 +19,9 @@ namespace Snow.Core
             ResourceManagerGuid = resourceManagerGuid;
         }
 
-        protected override void Commit(FileStream lockedFileStream)
+        protected override void Commit(IDocumentFile lockedFileStream)
         {
-            using (var stream = new StreamWriter(lockedFileStream))
+            using (var stream = new StreamWriter(lockedFileStream.GetStream()))
             {
                 stream.Write(_serializer.Serialize(Document));
             }

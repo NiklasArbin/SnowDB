@@ -14,8 +14,8 @@ namespace Snow.Core
     {
         protected IDocumentFileNameProvider FileNameProvider;
         protected Guid ResourceManagerGuid;
-        protected FileInfo DocumentFile;
-        private FileStream _fileStream;
+        //protected FileInfo DocumentFile;
+        protected IDocumentFile DocumentFile;
 
         public string Key { get; set; }
 
@@ -30,22 +30,22 @@ namespace Snow.Core
             else
             {
                 LockFile();
-                Commit(_fileStream);
+                Commit(DocumentFile);
             }
         }
 
-        protected abstract void Commit(FileStream lockedFileStream);
+        protected abstract void Commit(IDocumentFile lockedFileStream);
 
         private void LockFile()
         {
-            _fileStream = DocumentFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+            DocumentFile.Lock();
         }
 
         void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
         {
             if (DocumentFile.Exists)
             {
-                DocumentFile.CopyTo(FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName);
+                File.Copy(FileNameProvider.GetDocumentFile<TDocument>(Key).FullName, FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName);
             }
 
             LockFile();
@@ -56,7 +56,7 @@ namespace Snow.Core
 
         void IEnlistmentNotification.Commit(Enlistment enlistment)
         {
-            Commit(_fileStream);
+            Commit(DocumentFile);
             enlistment.Done();
         }
         protected abstract void Rollback();

@@ -8,8 +8,8 @@ namespace Snow.Core
         DirectoryInfo DatabaseDirectory { get; }
         DirectoryInfo DatabaseTransactionRootDirectory { get; }
         DirectoryInfo GetTransactionDirectory(Guid resourceManagerGuid);
-        FileInfo GetDocumentFile<TDocument>(string key) where TDocument : class;
-        FileInfo GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class;
+        IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class;
+        IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class;
 
     }
 
@@ -35,14 +35,14 @@ namespace Snow.Core
         }
 
 
-        public FileInfo GetDocumentFile<TDocument>(string key) where TDocument : class
+        public IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class
         {
-            return new FileInfo(_databaseDirectory.FullName + "\\" + GetFileName(typeof (TDocument), key));
+            return new DocumentFile(_databaseDirectory.FullName + "\\" + GetFileName(typeof (TDocument), key));
         }
 
-        public FileInfo GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class
+        public IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class
         {
-            return new FileInfo(GetTransactionDirectory(resourceManagerGuid).FullName + "\\" + GetFileName(typeof (TDocument), key));
+            return new DocumentFile(GetTransactionDirectory(resourceManagerGuid).FullName + "\\" + GetFileName(typeof (TDocument), key));
         }
 
         private static string GetFileName(Type type, string key)

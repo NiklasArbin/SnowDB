@@ -60,6 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DocumentFile.cs" />
     <Compile Include="DocumentFileNameProvider.cs" />
     <Compile Include="DocumentNotFoundException.cs" />
     <Compile Include="DeleteOperation.cs" />

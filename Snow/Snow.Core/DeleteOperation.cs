@@ -5,7 +5,7 @@ using Snow.Core.Extensions;
 namespace Snow.Core
 {
     internal class DeleteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
-    {   
+    {
         public DeleteOperation(IDocumentFileNameProvider fileNameProvider, Guid resourceManagerGuid)
         {
             FileNameProvider = fileNameProvider;
@@ -21,10 +21,10 @@ namespace Snow.Core
             base.Execute();
         }
 
-        protected override void Commit(FileStream lockedFileStream)
+        protected override void Commit(IDocumentFile lockedFileStream)
         {
-            lockedFileStream.Close();
-            DocumentFile.Delete();
+            lockedFileStream.Unlock();
+            lockedFileStream.Delete();
         }
 
         protected override void Rollback()
@@ -34,7 +34,7 @@ namespace Snow.Core
                 return;
             }
 
-            FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).CopyTo(DocumentFile.FullName, true);
+            File.Copy(FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName, DocumentFile.FullName, true);
         }
     }
 }

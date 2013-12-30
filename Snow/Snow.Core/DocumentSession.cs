@@ -41,7 +41,7 @@ namespace Snow.Core
                 throw new DocumentNotFoundException(String.Format("Document {0} does not exist", key));
 
             string content;
-            using (var sr = new StreamReader(file.Open(FileMode.Open, FileAccess.Read, FileShare.Read)))
+            using (var sr = new StreamReader(file.GetStream()))
             {
                 content = sr.ReadToEnd();
             }
