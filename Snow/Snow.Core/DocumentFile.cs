@@ -111,7 +111,19 @@ namespace Snow.Core
 
         public void Delete()
         {
-            _fileInfo.Delete();
+            var initalAccessTime = DateTime.Now;
+            while ((DateTime.Now - initalAccessTime) < MaxWaitForFile)
+            {
+                try
+                {
+                    _fileInfo.Delete();
+                    break;
+                }
+                catch (IOException)
+                {
+                    Thread.Sleep(50);
+                }
+            }
         }
 
         public void Dispose()
