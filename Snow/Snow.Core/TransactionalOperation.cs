@@ -14,7 +14,6 @@ namespace Snow.Core
     {
         protected IDocumentFileNameProvider FileNameProvider;
         protected Guid ResourceManagerGuid;
-        //protected FileInfo DocumentFile;
         protected IDocumentFile DocumentFile;
 
         public string Key { get; set; }
@@ -57,6 +56,12 @@ namespace Snow.Core
         void IEnlistmentNotification.Commit(Enlistment enlistment)
         {
             Commit(DocumentFile);
+            var backupfile = new DocumentFile(FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName);
+            if (backupfile.Exists)
+            {
+                backupfile.Delete();
+            }
+
             enlistment.Done();
         }
         protected abstract void Rollback();
