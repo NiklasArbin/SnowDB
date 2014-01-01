@@ -35,10 +35,7 @@ namespace Snow.Core
 
         protected abstract void Commit(IDocumentFile lockedFileStream);
 
-        private void LockFile()
-        {
-            DocumentFile.Lock();
-        }
+        
 
         void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
         {
@@ -47,7 +44,7 @@ namespace Snow.Core
                 File.Copy(FileNameProvider.GetDocumentFile<TDocument>(Key).FullName, FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName);
             }
 
-            LockFile();
+            DocumentFile.Lock();
             preparingEnlistment.Prepared();
         }
 
@@ -56,6 +53,7 @@ namespace Snow.Core
         void IEnlistmentNotification.Commit(Enlistment enlistment)
         {
             Commit(DocumentFile);
+            DocumentFile.Unlock();
             enlistment.Done();
         }
         protected abstract void Rollback();

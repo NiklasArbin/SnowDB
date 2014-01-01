@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom;
 using System.IO;
 
 namespace Snow.Core
@@ -19,6 +20,7 @@ namespace Snow.Core
         private readonly DirectoryInfo _transactionRootDirectory;
         private const string FileExtension = "json";
         private const string TransactionDirectoryName = "trx";
+        private static readonly IDateTimeNow DateTimeNow = new DateTimeNow();
 
         public DocumentFileNameProvider(string dataLocation, string databaseName)
         {
@@ -37,12 +39,12 @@ namespace Snow.Core
 
         public IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class
         {
-            return new DocumentFile(_databaseDirectory.FullName + "\\" + GetFileName(typeof (TDocument), key));
+            return new DocumentFile(_databaseDirectory.FullName + "\\" + GetFileName(typeof (TDocument), key), DateTimeNow);
         }
 
         public IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class
         {
-            return new DocumentFile(GetTransactionDirectory(resourceManagerGuid).FullName + "\\" + GetFileName(typeof (TDocument), key));
+            return new DocumentFile(GetTransactionDirectory(resourceManagerGuid).FullName + "\\" + GetFileName(typeof (TDocument), key), DateTimeNow);
         }
 
         private static string GetFileName(Type type, string key)

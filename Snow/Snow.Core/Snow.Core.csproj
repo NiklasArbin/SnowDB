@@ -60,10 +60,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DateTimeNow.cs" />
     <Compile Include="DocumentFile.cs" />
     <Compile Include="DocumentFileNameProvider.cs" />
     <Compile Include="DocumentNotFoundException.cs" />
     <Compile Include="DeleteOperation.cs" />
+    <Compile Include="IDateTimeNow.cs" />
     <Compile Include="TransactionalOperation.cs" />
     <Compile Include="IOperation.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />

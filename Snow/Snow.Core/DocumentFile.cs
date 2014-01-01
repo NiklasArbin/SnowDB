@@ -19,20 +19,22 @@ namespace Snow.Core
 
     public class DocumentFile : IDocumentFile
     {
+        private readonly IDateTimeNow _dateTimeNow;
         private FileStream _fileStream;
         private readonly FileInfo _fileInfo;
         private static readonly TimeSpan MaxWaitForFile = TimeSpan.FromSeconds(30);
         private bool IsLocked { get; set; }
 
-        public DocumentFile(string fileName)
+        public DocumentFile(string fileName, IDateTimeNow dateTimeNow)
         {
+            _dateTimeNow = dateTimeNow;
             _fileInfo = new FileInfo(fileName);
         }
 
         private FileStream OpenFileOrWait(FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
-            var initalAccessTime = DateTime.Now;
-            while ((DateTime.Now - initalAccessTime) < MaxWaitForFile)
+            var initalAccessTime = _dateTimeNow.Now;
+            while ((_dateTimeNow.Now - initalAccessTime) < MaxWaitForFile)
             {
                 try
                 {
@@ -50,7 +52,7 @@ namespace Snow.Core
                     }
                 }
             }
-            var t = DateTime.Now - initalAccessTime;
+            var t = _dateTimeNow.Now - initalAccessTime;
             throw new DocumentFileTimeoutException("Timeout occured when trying to access the file {0}".FormatWith(_fileInfo.FullName));
         }
 
@@ -116,8 +118,8 @@ namespace Snow.Core
 
         public void Delete()
         {
-            var initalAccessTime = DateTime.Now;
-            while ((DateTime.Now - initalAccessTime) < MaxWaitForFile)
+            var initalAccessTime = _dateTimeNow.Now;
+            while ((_dateTimeNow.Now - initalAccessTime) < MaxWaitForFile)
             {
                 try
                 {
