@@ -14,17 +14,36 @@ namespace Snow.Tests
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
             var key = "7966FBDA-D8A6-4F6D-AFD9-DE00968ED6D4";
             IDocumentFile tempFile = fileNameProvider.GetDocumentFile<TestDocument>(key);
-            
-            
-            var currentTime = DateTime.Now;
-            var mockDateTime = new Mock<IDateTimeNow>();
-            mockDateTime.Setup(x => x.Now).Returns(currentTime);
 
-            IDocumentFile documentFile1 = new DocumentFile(tempFile.FullName, mockDateTime.Object);
-            IDocumentFile documentFile2 = new DocumentFile(tempFile.FullName, mockDateTime.Object);
+
+
+            IDocumentFile documentFile1 = new DocumentFile(tempFile.FullName, new FakeDateTime());
+            IDocumentFile documentFile2 = new DocumentFile(tempFile.FullName, new FakeDateTime());
 
             documentFile1.Lock();
             documentFile2.Invoking(x => x.Lock()).ShouldThrow<DocumentFileTimeoutException>();
+        }
+    }
+
+    class FakeDateTime : IDateTimeNow
+    {
+        private int _counter = 0;
+        private DateTime _dateTime;
+
+        public FakeDateTime()
+        {
+            _dateTime = DateTime.Now;
+        }
+
+        public DateTime Now
+        {
+            get
+            {
+                if (_counter > 1)
+                    return _dateTime.AddSeconds(30);
+                _counter++;
+                return _dateTime;
+            }
         }
     }
 }
