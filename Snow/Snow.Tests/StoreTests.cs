@@ -9,6 +9,13 @@ namespace Snow.Tests
     [TestFixture]
     public class StoreTests
     {
+        [Test]
+        public void Ctor_with_connection_string_name_should_set_properties()
+        {
+            var store = new DocumentStore("connectionName");
+            store.DataLocation.Should().Be(@"c:\temp");
+            store.DatabaseName.Should().Be("TestDB");
+        }
 
         [Test]
         public void OpenSession_should_return_a_new_session()

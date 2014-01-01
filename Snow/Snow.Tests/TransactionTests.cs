@@ -1,7 +1,6 @@
 using System;
 using System.Transactions;
 using FluentAssertions;
-using NSpec;
 using NUnit.Framework;
 using Snow.Core;
 
