@@ -38,9 +38,16 @@ namespace Snow.Core
                 {
                     return _fileInfo.Open(fileMode, fileAccess, fileShare);
                 }
-                catch (IOException)
+                catch (IOException e)
                 {
-                    Thread.Sleep(50);
+                    if (e.Message.StartsWith("The process cannot access the file"))
+                    {
+                        Thread.Sleep(50);
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
             var t = DateTime.Now - initalAccessTime;
@@ -57,8 +64,6 @@ namespace Snow.Core
 
         public void Unlock()
         {
-            if (!IsLocked)
-                throw new InvalidOperationException("The document is not locked.");
             if (_fileStream != null)
             {
                 _fileStream.Dispose();
@@ -116,14 +121,24 @@ namespace Snow.Core
             {
                 try
                 {
+                    Unlock();
                     _fileInfo.Delete();
-                    break;
+                    return;
                 }
-                catch (IOException)
+                catch (IOException e)
                 {
-                    Thread.Sleep(50);
+                    if (e.Message.StartsWith("The process cannot access the file"))
+                    {
+                        Thread.Sleep(50);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+
                 }
             }
+            throw new DocumentFileTimeoutException("Timeout occured when trying to access the file {0}".FormatWith(_fileInfo.FullName));
         }
 
         public void Dispose()

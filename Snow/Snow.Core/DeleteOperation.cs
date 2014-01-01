@@ -23,7 +23,6 @@ namespace Snow.Core
 
         protected override void Commit(IDocumentFile lockedFileStream)
         {
-            lockedFileStream.Unlock();
             lockedFileStream.Delete();
         }
 

@@ -28,7 +28,7 @@ namespace Snow.Core
             }
             else
             {
-                LockFile();
+                DocumentFile.Lock();
                 Commit(DocumentFile);
             }
         }
@@ -56,12 +56,6 @@ namespace Snow.Core
         void IEnlistmentNotification.Commit(Enlistment enlistment)
         {
             Commit(DocumentFile);
-            var backupfile = new DocumentFile(FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName);
-            if (backupfile.Exists)
-            {
-                backupfile.Delete();
-            }
-
             enlistment.Done();
         }
         protected abstract void Rollback();
