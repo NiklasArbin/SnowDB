@@ -4,11 +4,6 @@ using System.Transactions;
 
 namespace Snow.Core
 {
-    internal class Key<TDocument> where TDocument : class 
-    {
-        public string Value { get; set; }
-    }
-
     internal abstract class TransactionalOperation<TDocument> : IOperation, IEnlistmentNotification
         where TDocument : class
     {
