@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="fastjson">
+      <HintPath>..\packages\fastJSON.2.0.26\lib\net40\fastjson.dll</HintPath>
+    </Reference>
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
@@ -68,6 +71,7 @@
     <Compile Include="DocumentNotFoundException.cs" />
     <Compile Include="DeleteOperation.cs" />
     <Compile Include="IDateTimeNow.cs" />
+    <Compile Include="Serializers\FastJsonSerializer.cs" />
     <Compile Include="SnowConnectionStringBuilder.cs" />
     <Compile Include="TransactionalOperation.cs" />
     <Compile Include="IOperation.cs" />
