@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Transactions;
 
-namespace Snow.Core
+namespace Snow.Core.Operation
 {
     internal abstract class TransactionalOperation<TDocument> : IOperation, IEnlistmentNotification
         where TDocument : class

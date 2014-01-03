@@ -1,9 +1,8 @@
 using System;
-using System.IO;
 using System.Text;
 using Snow.Core.Serializers;
 
-namespace Snow.Core
+namespace Snow.Core.Operation
 {
     internal class WriteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
     {

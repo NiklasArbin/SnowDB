@@ -35,8 +35,14 @@
     <Reference Include="fastjson">
       <HintPath>..\packages\fastJSON.2.0.26\lib\net40\fastjson.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net">
+      <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -69,14 +75,14 @@
     <Compile Include="DocumentFile.cs" />
     <Compile Include="DocumentFileNameProvider.cs" />
     <Compile Include="DocumentNotFoundException.cs" />
-    <Compile Include="DeleteOperation.cs" />
+    <Compile Include="Operation\DeleteOperation.cs" />
     <Compile Include="IDateTimeNow.cs" />
     <Compile Include="Serializers\FastJsonSerializer.cs" />
     <Compile Include="SnowConnectionStringBuilder.cs" />
-    <Compile Include="TransactionalOperation.cs" />
-    <Compile Include="IOperation.cs" />
+    <Compile Include="Operation\TransactionalOperation.cs" />
+    <Compile Include="Operation\IOperation.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="WriteOperation.cs" />
+    <Compile Include="Operation\WriteOperation.cs" />
     <Compile Include="Serializers\IDocumentSerializer.cs" />
     <Compile Include="DocumentSession.cs" />
     <Compile Include="DocumentStore.cs" />

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Snow.Core.Extensions;
 
-namespace Snow.Core
+namespace Snow.Core.Operation
 {
     internal class DeleteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
     {

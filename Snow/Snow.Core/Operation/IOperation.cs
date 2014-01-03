@@ -1,4 +1,4 @@
-﻿namespace Snow.Core
+﻿namespace Snow.Core.Operation
 {
     internal interface IOperation
     {
