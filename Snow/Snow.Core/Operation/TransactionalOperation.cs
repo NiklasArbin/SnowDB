@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Transactions;
+using Snow.Core.Lucene;
 
 namespace Snow.Core.Operation
 {
@@ -28,7 +29,7 @@ namespace Snow.Core.Operation
             }
         }
 
-        protected abstract void Commit(IDocumentFile lockedFileStream);
+        protected abstract void Commit(IDocumentFile documentFile);
 
         
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Transactions;
 using log4net;
+using Snow.Core.Lucene;
 using Snow.Core.Operation;
 using Snow.Core.Serializers;
 
@@ -18,6 +19,7 @@ namespace Snow.Core
         private readonly IDocumentStore _store;
         private readonly IDocumentFileNameProvider _fileNameProvider;
         private readonly IDocumentSerializer _serializer;
+        private readonly ISnowIndex _luceneIndex;
 
 
         private readonly Encoding _encoding = new UTF8Encoding();
@@ -29,7 +31,7 @@ namespace Snow.Core
             _serializer = serializer;
             _fileNameProvider = fileNameProvider;
             _pendingChanges = new Dictionary<string, IOperation>();
-            _resourceGuid = Guid.NewGuid();
+            _resourceGuid = Guid.NewGuid();            
         }
 
         public TDocument Get<TDocument>(string key) where TDocument : class

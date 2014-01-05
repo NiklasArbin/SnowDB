@@ -21,9 +21,9 @@ namespace Snow.Core.Operation
             base.Execute();
         }
 
-        protected override void Commit(IDocumentFile lockedFileStream)
+        protected override void Commit(IDocumentFile documentFile)
         {
-            lockedFileStream.Delete();
+            documentFile.Delete();
         }
 
         protected override void Rollback()
