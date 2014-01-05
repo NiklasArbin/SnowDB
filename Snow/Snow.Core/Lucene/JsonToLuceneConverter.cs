@@ -4,7 +4,7 @@ using Snow.Core.Extensions;
 
 namespace Snow.Core.Lucene
 {
-    public class LuceneSerializer
+    public class JsonToLuceneConverter
     {
         public static List<Field> Serialize(string input)
         {

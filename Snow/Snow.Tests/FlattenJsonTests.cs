@@ -36,7 +36,7 @@ namespace Snow.Tests
         [Test]
         public void Test()
         {
-            var x = LuceneSerializer.Serialize(testJson);
+            var x = JsonToLuceneConverter.Serialize(testJson);
 
            var y= fastJSON.JSON.Instance.ToObject<Dictionary<string, object>>(testJson);
         }

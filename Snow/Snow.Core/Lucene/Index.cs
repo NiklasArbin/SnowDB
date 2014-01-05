@@ -39,7 +39,7 @@ namespace Snow.Core.Lucene
         {
             var doc = new Document();
             doc.Add(new Field(SnowDbKeyName, GetKey<TDocument>(key), Field.Store.YES, Field.Index.ANALYZED));
-            var fields = LuceneSerializer.Serialize(json);
+            var fields = JsonToLuceneConverter.Serialize(json);
             foreach (var field in fields)
             {
                 doc.Add(field);
