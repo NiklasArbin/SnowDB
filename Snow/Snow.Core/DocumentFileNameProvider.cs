@@ -9,6 +9,7 @@ namespace Snow.Core
         DirectoryInfo DatabaseDirectory { get; }
         DirectoryInfo DatabaseTransactionRootDirectory { get; }
         DirectoryInfo GetTransactionDirectory(Guid resourceManagerGuid);
+        DirectoryInfo GetLuceneDirectory();
         IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class;
         IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class;
 
@@ -20,12 +21,13 @@ namespace Snow.Core
         private readonly DirectoryInfo _transactionRootDirectory;
         private const string FileExtension = "json";
         private const string TransactionDirectoryName = "trx";
+        private const string LuceneDirectoryName = "Lucene";
         private static readonly IDateTimeNow DateTimeNow = new DateTimeNow();
 
         public DocumentFileNameProvider(string dataLocation, string databaseName)
         {
             _databaseDirectory = new DirectoryInfo(dataLocation + "\\" + databaseName);
-            _transactionRootDirectory = new DirectoryInfo(dataLocation + "\\" + databaseName + "\\" +TransactionDirectoryName);
+            _transactionRootDirectory = new DirectoryInfo(dataLocation + "\\" + databaseName + "\\" + TransactionDirectoryName);
         }
 
         public DirectoryInfo DatabaseDirectory { get { return _databaseDirectory; } }
@@ -36,15 +38,20 @@ namespace Snow.Core
             return new DirectoryInfo(_transactionRootDirectory.FullName + "\\" + resourceManagerGuid);
         }
 
+        public DirectoryInfo GetLuceneDirectory()
+        {
+            return new DirectoryInfo(_transactionRootDirectory.FullName + "\\" + LuceneDirectoryName);
+        }
+
 
         public IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class
         {
-            return new DocumentFile(_databaseDirectory.FullName + "\\" + GetFileName(typeof (TDocument), key), DateTimeNow);
+            return new DocumentFile(_databaseDirectory.FullName + "\\" + GetFileName(typeof(TDocument), key), DateTimeNow);
         }
 
         public IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class
         {
-            return new DocumentFile(GetTransactionDirectory(resourceManagerGuid).FullName + "\\" + GetFileName(typeof (TDocument), key), DateTimeNow);
+            return new DocumentFile(GetTransactionDirectory(resourceManagerGuid).FullName + "\\" + GetFileName(typeof(TDocument), key), DateTimeNow);
         }
 
         private static string GetFileName(Type type, string key)
