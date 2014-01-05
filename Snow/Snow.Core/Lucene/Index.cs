@@ -30,7 +30,7 @@ namespace Snow.Core.Lucene
             _writer = new IndexWriter(_fsDirectory, _analyser, IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
-        public static SnowIndex Open(IDocumentFileNameProvider fileNameProvider)
+        public static ISnowIndex Open(IDocumentFileNameProvider fileNameProvider)
         {
             return new SnowIndex(fileNameProvider);
         }
