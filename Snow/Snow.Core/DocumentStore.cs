@@ -10,6 +10,7 @@ namespace Snow.Core
     {
         public string DatabaseName { get; set; }
         public string DataLocation { get; set; }
+        private IDocumentFileNameProvider _fileNameProvider;
 
         public DocumentStore()
         {
@@ -34,6 +35,8 @@ namespace Snow.Core
             if (string.IsNullOrEmpty(DatabaseName))
                 throw new ArgumentException("DatabaseName cannot be empty");
 
+            _fileNameProvider=new DocumentFileNameProvider(DataLocation, DatabaseName);
+
             if (!Directory.Exists(DataLocation))
                 throw new DirectoryNotFoundException(String.Format("The directory '{0}' doesn't exist", DataLocation));
 
@@ -43,13 +46,18 @@ namespace Snow.Core
             {
                 Directory.CreateDirectory(dbDir).CreateSubdirectory("trx");
             }
+            var lucene = _fileNameProvider.GetLuceneDirectory();
+            if (!lucene.Exists)
+            {
+                lucene.Create();
+            }
                 
         }
 
         public IDocumentSession OpenSession()
         {
             Initialize();
-            return new DocumentSession(this, new JsonNetSerializer());
+            return new DocumentSession(this, new JsonNetSerializer(), _fileNameProvider);
         }
 
         

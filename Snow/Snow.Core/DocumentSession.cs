@@ -23,11 +23,11 @@ namespace Snow.Core
         private readonly Encoding _encoding = new UTF8Encoding();
         private readonly Dictionary<string, IOperation> _pendingChanges;
 
-        public DocumentSession(IDocumentStore store, IDocumentSerializer serializer)
+        public DocumentSession(IDocumentStore store, IDocumentSerializer serializer, IDocumentFileNameProvider fileNameProvider)
         {
             _store = store;
-            _fileNameProvider = new DocumentFileNameProvider(store.DataLocation, store.DatabaseName);
             _serializer = serializer;
+            _fileNameProvider = fileNameProvider;
             _pendingChanges = new Dictionary<string, IOperation>();
             _resourceGuid = Guid.NewGuid();
         }
