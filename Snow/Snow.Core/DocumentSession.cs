@@ -77,6 +77,8 @@ namespace Snow.Core
                 pendingChange.Execute();
             }
 
+            _pendingChanges.Clear();
+
             if (dir.Exists)
                 dir.Delete(true);
         }
