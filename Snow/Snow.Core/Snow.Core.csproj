@@ -79,6 +79,7 @@
     <Compile Include="Lucene\LuceneSerializer.cs" />
     <Compile Include="Operation\DeleteOperation.cs" />
     <Compile Include="IDateTimeNow.cs" />
+    <Compile Include="Operation\ISnowTransaction.cs" />
     <Compile Include="Serializers\FastJsonSerializer.cs" />
     <Compile Include="SnowConnectionStringBuilder.cs" />
     <Compile Include="Operation\TransactionalOperation.cs" />
