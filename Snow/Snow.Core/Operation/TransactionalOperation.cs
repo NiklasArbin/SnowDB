@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Transactions;
-using Snow.Core.Lucene;
 
 namespace Snow.Core.Operation
 {

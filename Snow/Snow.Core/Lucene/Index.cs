@@ -10,13 +10,13 @@ using Version = Lucene.Net.Util.Version;
 
 namespace Snow.Core.Lucene
 {
-    internal interface ISnowIndex : IDisposable, ISnowTransaction
+    internal interface ISnowIndexer : IDisposable, ISnowTransaction
     {
         void Add<TDocument>(string key, string json);
         void Delete<TDocument>(string key);
     }
 
-    internal class SnowIndex : ISnowIndex
+    internal class SnowIndexer : ISnowIndexer
     {
         private const string SnowDbKeyName = "SnowDBKey";
 
@@ -24,15 +24,15 @@ namespace Snow.Core.Lucene
         private readonly FSDirectory _fsDirectory;
         private readonly Analyzer _analyser = new StandardAnalyzer(Version.LUCENE_30);
 
-        private SnowIndex(IDocumentFileNameProvider fileNameProvider)
+        private SnowIndexer(IDocumentFileNameProvider fileNameProvider)
         {
             _fsDirectory = FSDirectory.Open(fileNameProvider.GetLuceneDirectory().FullName);
             _writer = new IndexWriter(_fsDirectory, _analyser, IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
-        public static ISnowIndex Open(IDocumentFileNameProvider fileNameProvider)
+        public static ISnowIndexer Open(IDocumentFileNameProvider fileNameProvider)
         {
-            return new SnowIndex(fileNameProvider);
+            return new SnowIndexer(fileNameProvider);
         }
 
         public void Add<TDocument>(string key, string json)

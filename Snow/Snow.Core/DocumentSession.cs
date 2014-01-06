@@ -19,7 +19,7 @@ namespace Snow.Core
         private readonly IDocumentStore _store;
         private readonly IDocumentFileNameProvider _fileNameProvider;
         private readonly IDocumentSerializer _serializer;
-        private readonly ISnowIndex _luceneIndex;
+        private readonly ISnowIndexer _luceneIndexer;
 
 
         private readonly Encoding _encoding = new UTF8Encoding();
