@@ -40,7 +40,7 @@ namespace Snow.Core
 
         public DirectoryInfo GetLuceneDirectory()
         {
-            return new DirectoryInfo(_transactionRootDirectory.FullName + "\\" + LuceneDirectoryName);
+            return new DirectoryInfo(_databaseDirectory.FullName + "\\" + LuceneDirectoryName);
         }
 
 

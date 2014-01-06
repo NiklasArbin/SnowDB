@@ -1,5 +1,5 @@
 using System;
-using System.Text;
+using Snow.Core.Lucene;
 using Snow.Core.Serializers;
 
 namespace Snow.Core.Operation
@@ -7,24 +7,27 @@ namespace Snow.Core.Operation
     internal class WriteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
     {
         private readonly IDocumentSerializer _serializer;
-        private readonly Encoding _encoding;
+        private readonly ISnowIndexer _snowIndexer;
         public object Document { get; set; }
 
-        public WriteOperation(IDocumentFileNameProvider fileNameProvider, IDocumentSerializer serializer, Encoding encoding, Guid resourceManagerGuid)
+        public WriteOperation(IDocumentFileNameProvider fileNameProvider, IDocumentSerializer serializer, Guid resourceManagerGuid, ISnowIndexer snowIndexer)
         {
             FileNameProvider = fileNameProvider;
             _serializer = serializer;
-            _encoding = encoding;
+            _snowIndexer = snowIndexer;
             ResourceManagerGuid = resourceManagerGuid;
         }
 
         protected override void Commit(IDocumentFile documentFile)
         {
-            documentFile.Write(_serializer.Serialize(Document));
+            var json = _serializer.Serialize(Document);
+            documentFile.Write(json);
+            _snowIndexer.Add<TDocument>(Key, json);
         }
 
         protected override void Rollback()
         {
+            _snowIndexer.Rollback();
             //TODO:Rollback....determine if new or existing
         }
     }

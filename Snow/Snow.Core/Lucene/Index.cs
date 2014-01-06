@@ -14,25 +14,23 @@ namespace Snow.Core.Lucene
     {
         void Add<TDocument>(string key, string json);
         void Delete<TDocument>(string key);
+        ISnowIndexer Open(IDocumentFileNameProvider fileNameProvider);
     }
 
     internal class SnowIndexer : ISnowIndexer
     {
         private const string SnowDbKeyName = "SnowDBKey";
 
-        private readonly IndexWriter _writer;
-        private readonly FSDirectory _fsDirectory;
+        private IndexWriter _writer;
+        private FSDirectory _fsDirectory;
         private readonly Analyzer _analyser = new StandardAnalyzer(Version.LUCENE_30);
 
-        private SnowIndexer(IDocumentFileNameProvider fileNameProvider)
+
+        public ISnowIndexer Open(IDocumentFileNameProvider fileNameProvider)
         {
             _fsDirectory = FSDirectory.Open(fileNameProvider.GetLuceneDirectory().FullName);
             _writer = new IndexWriter(_fsDirectory, _analyser, IndexWriter.MaxFieldLength.UNLIMITED);
-        }
-
-        public static ISnowIndexer Open(IDocumentFileNameProvider fileNameProvider)
-        {
-            return new SnowIndexer(fileNameProvider);
+            return this;
         }
 
         public void Add<TDocument>(string key, string json)
@@ -70,8 +68,10 @@ namespace Snow.Core.Lucene
 
         public void Dispose()
         {
-            _writer.Dispose();
-            _fsDirectory.Dispose();
+            if (_writer != null)
+                _writer.Dispose();
+            if (_fsDirectory != null)
+                _fsDirectory.Dispose();
         }
 
         private static string GetKey<TDocument>(string key)

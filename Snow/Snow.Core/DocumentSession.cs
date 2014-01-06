@@ -19,7 +19,7 @@ namespace Snow.Core
         private readonly IDocumentStore _store;
         private readonly IDocumentFileNameProvider _fileNameProvider;
         private readonly IDocumentSerializer _serializer;
-        private readonly ISnowIndexer _luceneIndexer;
+        private readonly ISnowIndexer _snowIndexer;
 
 
         private readonly Encoding _encoding = new UTF8Encoding();
@@ -31,7 +31,8 @@ namespace Snow.Core
             _serializer = serializer;
             _fileNameProvider = fileNameProvider;
             _pendingChanges = new Dictionary<string, IOperation>();
-            _resourceGuid = Guid.NewGuid();            
+            _resourceGuid = Guid.NewGuid();
+            _snowIndexer = new SnowIndexer();
         }
 
         public TDocument Get<TDocument>(string key) where TDocument : class
@@ -40,7 +41,7 @@ namespace Snow.Core
             if (!file.Exists)
                 throw new DocumentNotFoundException(String.Format("Document {0} does not exist", key));
 
-            
+
             return _serializer.Deserialize<TDocument>(file.Read());
         }
 
@@ -60,7 +61,7 @@ namespace Snow.Core
 
         public void Save<TDocument>(TDocument document, string key) where TDocument : class
         {
-            AddOperation<TDocument>(new WriteOperation<TDocument>(_fileNameProvider, _serializer, _encoding, _resourceGuid) { Key = key, Document = document });
+            AddOperation<TDocument>(new WriteOperation<TDocument>(_fileNameProvider, _serializer, _resourceGuid, _snowIndexer) { Key = key, Document = document });
         }
 
         public void Delete<TDocument>(string key) where TDocument : class
@@ -70,19 +71,28 @@ namespace Snow.Core
 
         public void SaveChanges()
         {
-            var dir = _fileNameProvider.GetTransactionDirectory(_resourceGuid);
-            if (Transaction.Current != null)
-                dir.Create();
-
-            foreach (var pendingChange in _pendingChanges.Values)
+            
+            using (_snowIndexer.Open(_fileNameProvider))
             {
-                pendingChange.Execute();
+                var dir = _fileNameProvider.GetTransactionDirectory(_resourceGuid);
+                if (Transaction.Current != null)
+                {
+                    dir.Create();
+                    _snowIndexer.Prepare();
+                }
+                foreach (var pendingChange in _pendingChanges.Values)
+                {
+                    pendingChange.Execute();
+                }
+
+                _pendingChanges.Clear();
+
+                if (dir.Exists)
+                {
+                    dir.Delete(true);
+                    _snowIndexer.Commit();
+                }
             }
-
-            _pendingChanges.Clear();
-
-            if (dir.Exists)
-                dir.Delete(true);
         }
 
         private void AddOperation<TDocument>(IOperation operation) where TDocument : class
@@ -101,7 +111,7 @@ namespace Snow.Core
 
         public void Dispose()
         {
-
+            _snowIndexer.Dispose();
         }
     }
 }
