@@ -25,7 +25,7 @@ namespace Snow.Tests
 
             using (var session = store.OpenSession())
             {
-                using (var trx = new TransactionScope(TransactionScopeOption.RequiresNew))
+                using (var trx = new TransactionScope())
                 {
                     session.Save(document, key);
                     session.SaveChanges();

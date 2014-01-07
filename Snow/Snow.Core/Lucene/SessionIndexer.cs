@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
@@ -10,25 +11,36 @@ using Version = Lucene.Net.Util.Version;
 
 namespace Snow.Core.Lucene
 {
-    internal interface ISnowIndexer : IDisposable, ISnowTransaction
+    internal interface ISessionIndexer : IDisposable, ISnowTransaction
     {
         void Add<TDocument>(string key, string json);
         void Delete<TDocument>(string key);
-        ISnowIndexer Open(IDocumentFileNameProvider fileNameProvider);
+        ISessionIndexer Open();
     }
 
-    internal class SnowIndexer : ISnowIndexer
+    internal class SessionIndexer : ISessionIndexer
     {
+        private readonly Guid _sessionId;
+        private readonly IDocumentFileNameProvider _fileNameProvider;
         private const string SnowDbKeyName = "SnowDBKey";
 
         private IndexWriter _writer;
         private FSDirectory _fsDirectory;
-        private readonly Analyzer _analyser = new StandardAnalyzer(Version.LUCENE_30);
+        private readonly DirectoryInfo _sessionDirectory;
 
+        private readonly Analyzer _analyser = new StandardAnalyzer(Version.LUCENE_29);
 
-        public ISnowIndexer Open(IDocumentFileNameProvider fileNameProvider)
+        public SessionIndexer(Guid sessionId, IDocumentFileNameProvider fileNameProvider)
         {
-            _fsDirectory = FSDirectory.Open(fileNameProvider.GetLuceneDirectory().FullName);
+            _sessionId = sessionId;
+            _fileNameProvider = fileNameProvider;
+            _sessionDirectory = fileNameProvider.GetLuceneSessionDirectory(sessionId);
+        }
+
+        public ISessionIndexer Open()
+        {
+            _sessionDirectory.Create();
+            _fsDirectory = FSDirectory.Open(_sessionDirectory);
             _writer = new IndexWriter(_fsDirectory, _analyser, IndexWriter.MaxFieldLength.UNLIMITED);
             return this;
         }
@@ -59,6 +71,7 @@ namespace Snow.Core.Lucene
         public void Commit()
         {
             _writer.Commit();
+            IndexSyncronizer.Syncronize(_sessionDirectory, _fileNameProvider);
         }
 
         public void Rollback()
@@ -72,6 +85,8 @@ namespace Snow.Core.Lucene
                 _writer.Dispose();
             if (_fsDirectory != null)
                 _fsDirectory.Dispose();
+            if (_sessionDirectory.Exists)
+                _sessionDirectory.Delete(true);
         }
 
         private static string GetKey<TDocument>(string key)

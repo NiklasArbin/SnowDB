@@ -75,7 +75,8 @@
     <Compile Include="DocumentFile.cs" />
     <Compile Include="DocumentFileNameProvider.cs" />
     <Compile Include="DocumentNotFoundException.cs" />
-    <Compile Include="Lucene\Index.cs" />
+    <Compile Include="Lucene\IndexSyncronizer.cs" />
+    <Compile Include="Lucene\SessionIndexer.cs" />
     <Compile Include="Lucene\JsonToLuceneConverter.cs" />
     <Compile Include="Operation\DeleteOperation.cs" />
     <Compile Include="IDateTimeNow.cs" />

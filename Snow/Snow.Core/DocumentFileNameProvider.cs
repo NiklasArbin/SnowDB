@@ -9,6 +9,8 @@ namespace Snow.Core
         DirectoryInfo DatabaseDirectory { get; }
         DirectoryInfo DatabaseTransactionRootDirectory { get; }
         DirectoryInfo GetTransactionDirectory(Guid resourceManagerGuid);
+        DirectoryInfo GetLuceneRootDirectory();
+        DirectoryInfo GetLuceneSessionDirectory(Guid sessionId);
         DirectoryInfo GetLuceneDirectory();
         IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class;
         IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class;
@@ -38,9 +40,19 @@ namespace Snow.Core
             return new DirectoryInfo(_transactionRootDirectory.FullName + "\\" + resourceManagerGuid);
         }
 
-        public DirectoryInfo GetLuceneDirectory()
+        public DirectoryInfo GetLuceneRootDirectory()
         {
             return new DirectoryInfo(_databaseDirectory.FullName + "\\" + LuceneDirectoryName);
+        }
+
+        public DirectoryInfo GetLuceneSessionDirectory(Guid sessionId)
+        {
+            return new DirectoryInfo(_databaseDirectory.FullName + "\\" + LuceneDirectoryName +"\\" +sessionId);
+        }
+
+        public DirectoryInfo GetLuceneDirectory()
+        {
+            return new DirectoryInfo(_databaseDirectory.FullName + "\\" + LuceneDirectoryName + "\\main");
         }
 
 

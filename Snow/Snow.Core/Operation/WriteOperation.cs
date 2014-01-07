@@ -7,10 +7,10 @@ namespace Snow.Core.Operation
     internal class WriteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
     {
         private readonly IDocumentSerializer _serializer;
-        private readonly ISnowIndexer _snowIndexer;
+        private readonly ISessionIndexer _snowIndexer;
         public object Document { get; set; }
 
-        public WriteOperation(IDocumentFileNameProvider fileNameProvider, IDocumentSerializer serializer, Guid resourceManagerGuid, ISnowIndexer snowIndexer)
+        public WriteOperation(IDocumentFileNameProvider fileNameProvider, IDocumentSerializer serializer, Guid resourceManagerGuid, ISessionIndexer snowIndexer)
         {
             FileNameProvider = fileNameProvider;
             _serializer = serializer;

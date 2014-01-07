@@ -46,7 +46,7 @@ namespace Snow.Core
             {
                 Directory.CreateDirectory(dbDir).CreateSubdirectory("trx");
             }
-            var lucene = _fileNameProvider.GetLuceneDirectory();
+            var lucene = _fileNameProvider.GetLuceneRootDirectory();
             if (!lucene.Exists)
             {
                 lucene.Create();
