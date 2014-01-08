@@ -23,14 +23,14 @@ namespace Snow.Core
         public Guid SessionId { get; private set; }
 
         private readonly Encoding _encoding = new UTF8Encoding();
-        private readonly Dictionary<string, IOperation> _pendingChanges;
+        private readonly SortedDictionary<string, IOperation> _pendingChanges;
 
         public DocumentSession(IDocumentStore store, IDocumentSerializer serializer, IDocumentFileNameProvider fileNameProvider)
         {
             _store = store;
             _serializer = serializer;
             _fileNameProvider = fileNameProvider;
-            _pendingChanges = new Dictionary<string, IOperation>();
+            _pendingChanges = new SortedDictionary<string, IOperation>();
             _resourceGuid = Guid.NewGuid();
             SessionId = _resourceGuid;
             _sessionIndexer = new SessionIndexer(SessionId, fileNameProvider);
