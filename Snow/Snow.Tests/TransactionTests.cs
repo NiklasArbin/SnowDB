@@ -29,11 +29,10 @@ namespace Snow.Tests
                 using (var session = store.OpenSession())
                 {
                     session.Save(document, key);
-                    session.SaveChanges();
                     Transaction.Current.Rollback();
                 }
             }
-            Thread.Sleep(1000);
+
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeFalse();
 
         }
@@ -55,7 +54,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Save(document, key);
-                session.SaveChanges();
             }
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
 
@@ -65,12 +63,9 @@ namespace Snow.Tests
                 {
 
                     session.Delete<TestDocument>(key);
-                    session.SaveChanges();
                     Transaction.Current.Rollback();
                 }
             }
-
-            Thread.Sleep(2000);
             var fileThatShouldNotHaveBeenDeleted = fileNameProvider.GetDocumentFile<TestDocument>(key);
             fileThatShouldNotHaveBeenDeleted.Exists.Should().BeTrue();
         }
@@ -88,8 +83,6 @@ namespace Snow.Tests
                         var document = new TestDocument { SomeString = "blaha" };
                         session.Save(document, Guid.NewGuid().ToString());
                     }
-
-                    session.SaveChanges();
                 }
                 trx.Complete();
             }

@@ -49,7 +49,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Save(document, key);
-                session.SaveChanges();
             }
 
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
@@ -73,7 +72,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Save(document, key);
-                session.SaveChanges();
             }
 
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
@@ -82,7 +80,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Delete<TestDocument>(key);
-                session.SaveChanges();
             }
 
 
@@ -106,7 +103,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Save(document, key);
-                session.SaveChanges();
             }
 
             TestDocument retrievedDocument;
@@ -141,7 +137,6 @@ namespace Snow.Tests
             {
                 session.Save(document, key);
                 session.Save(document2, key);
-                session.SaveChanges();
             }
 
             TestDocument readDocument;

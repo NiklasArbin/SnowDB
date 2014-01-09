@@ -28,9 +28,12 @@ namespace Snow.Core
             SessionGuid = Guid.NewGuid();
             _sessionIndexer = new SessionIndexer(SessionGuid, fileNameProvider);
             _resourceManager = new TransactionalResourceManager(fileNameProvider, SessionGuid);
-
+            
             if (Transaction.Current != null)
-                _resourceManager.Enlist();
+            {
+                _resourceManager.Enlist(); 
+                
+            }
         }
 
         public TDocument Get<TDocument>(string key) where TDocument : class
@@ -67,17 +70,12 @@ namespace Snow.Core
             _resourceManager.AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, key, SessionGuid));
         }
 
-        private void Prepare()
-        {
-
-        }
-
         public void SaveChanges()
         {
-            if (Transaction.Current == null)
-                _resourceManager.Prepare();
 
-            _resourceManager.Commit();
+
+
+
 
 
             //_sessionIndexer.Open();
@@ -87,6 +85,11 @@ namespace Snow.Core
 
         public void Dispose()
         {
+            if (Transaction.Current == null)
+            {
+                _resourceManager.Prepare();
+            }
+            _resourceManager.Commit();
             //_sessionIndexer.Dispose();
         }
     }
