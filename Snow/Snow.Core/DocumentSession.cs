@@ -28,12 +28,9 @@ namespace Snow.Core
             SessionGuid = Guid.NewGuid();
             _sessionIndexer = new SessionIndexer(SessionGuid, fileNameProvider);
             _resourceManager = new TransactionalResourceManager(fileNameProvider, SessionGuid);
-            
-            if (Transaction.Current != null)
-            {
-                _resourceManager.Enlist(); 
-                
-            }
+
+            _trx = new TransactionScope(TransactionScopeOption.Required);
+            _resourceManager.Enlist(); 
         }
 
         public TDocument Get<TDocument>(string key) where TDocument : class
@@ -70,14 +67,8 @@ namespace Snow.Core
             _resourceManager.AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, key, SessionGuid));
         }
 
-        public void SaveChanges()
+        private void SaveChanges()
         {
-
-
-
-
-
-
             //_sessionIndexer.Open();
             //_sessionIndexer.Prepare();
             //_sessionIndexer.Commit();
@@ -85,11 +76,9 @@ namespace Snow.Core
 
         public void Dispose()
         {
-            if (Transaction.Current == null)
-            {
-                _resourceManager.Prepare();
-            }
-            _resourceManager.Commit();
+            _trx.Complete();
+            _trx.Dispose();
+            //_resourceManager.Commit();
             //_sessionIndexer.Dispose();
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Transactions;
 using Snow.Core.Operation;
 
@@ -24,29 +25,24 @@ namespace Snow.Core
             Transaction.Current.EnlistDurable(_sessionGuid, this, EnlistmentOptions.None);
         }
 
-        public void Prepare()
+        private void Prepare()
         {
-            var dir = _fileNameProvider.GetTransactionDirectory(_sessionGuid);
-            dir.Create();
-
-            foreach (var pendingChange in PendingChanges.Values)
+            if (PendingChanges.Any())
             {
-                pendingChange.Prepare();
+                var dir = _fileNameProvider.GetTransactionDirectory(_sessionGuid);
+                dir.Create();
+
+                foreach (var pendingChange in PendingChanges.Values)
+                {
+                    pendingChange.Prepare();
+                }
             }
         }
 
         void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
         {
             Prepare();
-            preparingEnlistment.Prepared();
-        }
-
-        public void Commit()
-        {
-            foreach (var pendingChange in PendingChanges.Values)
-            {
-                pendingChange.Commit();
-            }
+            preparingEnlistment.Done();
         }
 
         void IEnlistmentNotification.Commit(Enlistment enlistment)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
+using System.Transactions;
 using Snow.Core.Extensions;
 using Snow.Core.Serializers;
 
@@ -14,13 +15,13 @@ namespace Snow.Core
 
         public DocumentStore()
         {
-            
+
         }
 
         public DocumentStore(string connectionStringName)
         {
             var connectionString = ConfigurationManager.ConnectionStrings[connectionStringName];
-            if(connectionString==null)
+            if (connectionString == null)
                 throw new ArgumentException("Could not find '{0}' as named connection string".FormatWith(connectionStringName));
             var connectionStringBuilder = new SnowConnectionStringBuilder(connectionString.ConnectionString);
 
@@ -29,29 +30,29 @@ namespace Snow.Core
         }
 
         private void Initialize()
-        {   
+        {
             if (string.IsNullOrEmpty(DataLocation))
                 throw new ArgumentException("DataLocation cannot be empty");
             if (string.IsNullOrEmpty(DatabaseName))
                 throw new ArgumentException("DatabaseName cannot be empty");
 
-            _fileNameProvider=new DocumentFileNameProvider(DataLocation, DatabaseName);
+            _fileNameProvider = new DocumentFileNameProvider(DataLocation, DatabaseName);
 
             if (!Directory.Exists(DataLocation))
                 throw new DirectoryNotFoundException(String.Format("The directory '{0}' doesn't exist", DataLocation));
 
             var dataDirectory = new DirectoryInfo(DataLocation);
-            string dbDir = dataDirectory.FullName +"\\"+ DatabaseName;
+            string dbDir = dataDirectory.FullName + "\\" + DatabaseName;
             if (!Directory.Exists(dbDir))
             {
-                Directory.CreateDirectory(dbDir).CreateSubdirectory("trx");
+                Directory.CreateDirectory(dbDir + "\\trx");
             }
             var lucene = _fileNameProvider.GetLuceneRootDirectory();
             if (!lucene.Exists)
             {
                 lucene.Create();
             }
-                
+
         }
 
         public IDocumentSession OpenSession()

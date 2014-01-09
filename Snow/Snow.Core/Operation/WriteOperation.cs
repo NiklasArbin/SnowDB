@@ -32,11 +32,12 @@ namespace Snow.Core.Operation
             _documentFile.Lock();
             var json = _serializer.Serialize(_document);
             _documentFile.Write(json);
+            _documentFile.Unlock();
         }
 
         public void Commit()
         {
-            _documentFile.Unlock();
+            
         }
 
         public void Rollback()
