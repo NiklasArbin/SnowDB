@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Transactions;
 using FluentAssertions;
 using NUnit.Framework;
@@ -8,7 +9,7 @@ namespace Snow.Tests
 {
     public class TransactionTests
     {
-        
+
         [Test]
         public void Rollback_of_a_save_should_not_have_saved_a_new_document()
         {
@@ -22,17 +23,17 @@ namespace Snow.Tests
             };
             var key = "B8343419-F8CE-4993-A2E8-6DB763D5AEF1";
             TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
-
-            using (var session = store.OpenSession())
+            
+            using (var trx = new TransactionScope())
             {
-                using (var trx = new TransactionScope())
+                using (var session = store.OpenSession())
                 {
                     session.Save(document, key);
                     session.SaveChanges();
-                    Transaction.Current.Rollback(); 
+                    Transaction.Current.Rollback();
                 }
             }
-
+            Thread.Sleep(1000);
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeFalse();
 
         }
@@ -58,19 +59,22 @@ namespace Snow.Tests
             }
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
 
-            using (var session = store.OpenSession())
+            using (var trx = new TransactionScope())
             {
-                using (var trx = new TransactionScope())
+                using (var session = store.OpenSession())
                 {
+
                     session.Delete<TestDocument>(key);
                     session.SaveChanges();
                     Transaction.Current.Rollback();
                 }
             }
 
-            fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
+            Thread.Sleep(2000);
+            var fileThatShouldNotHaveBeenDeleted = fileNameProvider.GetDocumentFile<TestDocument>(key);
+            fileThatShouldNotHaveBeenDeleted.Exists.Should().BeTrue();
         }
-        
+
         [Test]
         public void Save_multiple_documents_in_the_same_transaction_should_save_all_documents()
         {

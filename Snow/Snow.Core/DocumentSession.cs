@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Transactions;
 using log4net;
 using Snow.Core.Lucene;
@@ -19,6 +18,7 @@ namespace Snow.Core
         private readonly ISessionIndexer _sessionIndexer;
         public Guid SessionGuid { get; private set; }
         private readonly TransactionalResourceManager _resourceManager;
+        private TransactionScope _trx;
 
         public DocumentSession(IDocumentStore store, IDocumentSerializer serializer, IDocumentFileNameProvider fileNameProvider)
         {
@@ -27,7 +27,10 @@ namespace Snow.Core
             _fileNameProvider = fileNameProvider;
             SessionGuid = Guid.NewGuid();
             _sessionIndexer = new SessionIndexer(SessionGuid, fileNameProvider);
-            _resourceManager = new TransactionalResourceManager(fileNameProvider);
+            _resourceManager = new TransactionalResourceManager(fileNameProvider, SessionGuid);
+
+            if (Transaction.Current != null)
+                _resourceManager.Enlist();
         }
 
         public TDocument Get<TDocument>(string key) where TDocument : class
@@ -56,22 +59,31 @@ namespace Snow.Core
 
         public void Save<TDocument>(TDocument document, string key) where TDocument : class
         {
-            _resourceManager.AddOperation<TDocument>(new WriteOperation<TDocument>(_fileNameProvider, _serializer, SessionGuid, _sessionIndexer) { Key = key, Document = document });
+            _resourceManager.AddOperation<TDocument>(new WriteOperation<TDocument>(document, key, _serializer, SessionGuid, _sessionIndexer, _fileNameProvider));
         }
 
         public void Delete<TDocument>(string key) where TDocument : class
         {
-            _resourceManager.AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, SessionGuid) { Key = key });
+            _resourceManager.AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, key, SessionGuid));
+        }
+
+        private void Prepare()
+        {
+            var dir = _fileNameProvider.GetTransactionDirectory(SessionGuid);
+            dir.Create();
+
+            foreach (var pendingChange in _resourceManager.PendingChanges.Values)
+            {
+                pendingChange.Prepare();
+            }
         }
 
         public void SaveChanges()
         {
-            using (var trx = new TransactionScope(TransactionScopeOption.Required))
-            {
-                _resourceManager.Enlist(SessionGuid);
-                _resourceManager.Commit();
-                trx.Complete();
-            }
+            Prepare();
+            _resourceManager.Commit();
+
+
             //_sessionIndexer.Open();
             //_sessionIndexer.Prepare();
             //_sessionIndexer.Commit();

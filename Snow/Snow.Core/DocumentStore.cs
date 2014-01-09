@@ -59,7 +59,5 @@ namespace Snow.Core
             Initialize();
             return new DocumentSession(this, new JsonNetSerializer(), _fileNameProvider);
         }
-
-        
     }
 }

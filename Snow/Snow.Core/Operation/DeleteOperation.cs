@@ -4,34 +4,43 @@ using Snow.Core.Extensions;
 
 namespace Snow.Core.Operation
 {
-    internal class DeleteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
+    internal class DeleteOperation<TDocument> : IOperation where TDocument : class
     {
-        public DeleteOperation(IDocumentFileNameProvider fileNameProvider, Guid resourceManagerGuid) : base(resourceManagerGuid)
+        private readonly IDocumentFileNameProvider _fileNameProvider;
+        public string Key { get; set; }
+        public Guid SessionGuid { get; private set; }
+        private readonly IDocumentFile _documentFile;
+
+        public DeleteOperation(IDocumentFileNameProvider fileNameProvider, string key, Guid sessionGuid)
         {
-            FileNameProvider = fileNameProvider;
+            Key = key;
+            _fileNameProvider = fileNameProvider;
+            SessionGuid = sessionGuid;
+            _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key);
         }
 
-        public override void Prepare()
+        public void Prepare()
         {
-            if (!DocumentFile.Exists)
+            if (!_documentFile.Exists)
                 throw new DocumentNotFoundException("Document {0} does not exist".FormatWith(Key));
 
-            base.Prepare();
+            File.Copy(_documentFile.FullName, _fileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, false);
+            _documentFile.Lock();
         }
 
-        protected override void Commit(IDocumentFile documentFile)
+        public void Commit()
         {
-            documentFile.Delete();
+            _documentFile.Delete();
         }
 
-        protected override void Rollback()
+        public void Rollback()
         {
-            if (DocumentFile.Exists)
+            if (_documentFile.Exists)
             {
                 return;
             }
 
-            File.Copy(FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, DocumentFile.FullName, true);
+            File.Copy(_fileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, _documentFile.FullName, true);
         }
     }
 }

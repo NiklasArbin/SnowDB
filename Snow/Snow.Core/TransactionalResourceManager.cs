@@ -9,47 +9,37 @@ namespace Snow.Core
     {
         private readonly IDocumentFileNameProvider _fileNameProvider;
         private Guid _sessionGuid;
-        private readonly SortedDictionary<string, IOperation> _pendingChanges;
+        public readonly SortedDictionary<string, IOperation> PendingChanges;
 
-        public TransactionalResourceManager(IDocumentFileNameProvider fileNameProvider)
+        public TransactionalResourceManager(IDocumentFileNameProvider fileNameProvider, Guid sessionGuid)
         {
             _fileNameProvider = fileNameProvider;
-
-            _pendingChanges = new SortedDictionary<string, IOperation>();
-        }
-
-        public void Enlist(Guid sessionGuid)
-        {
             _sessionGuid = sessionGuid;
 
-            Transaction.Current.EnlistDurable(_sessionGuid, this, EnlistmentOptions.EnlistDuringPrepareRequired);
+            PendingChanges = new SortedDictionary<string, IOperation>();
+        }
+
+        public void Enlist()
+        {
+            Transaction.Current.EnlistDurable(_sessionGuid, this, EnlistmentOptions.None);
         }
 
         void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
         {
-            var dir = _fileNameProvider.GetTransactionDirectory(_sessionGuid);
-            dir.Create();
-
-            foreach (var pendingChange in _pendingChanges.Values)
-            {
-                pendingChange.Prepare();
-            }
             preparingEnlistment.Prepared();
         }
 
         public void Commit()
         {
-            
-            foreach (var pendingChange in _pendingChanges.Values)
+            foreach (var pendingChange in PendingChanges.Values)
             {
                 pendingChange.Commit();
             }
-            
         }
 
         void IEnlistmentNotification.Commit(Enlistment enlistment)
         {
-            _pendingChanges.Clear();
+            PendingChanges.Clear();
             var dir = _fileNameProvider.GetTransactionDirectory(_sessionGuid);
             dir.Delete(true);
             enlistment.Done();
@@ -57,7 +47,7 @@ namespace Snow.Core
 
         void IEnlistmentNotification.Rollback(Enlistment enlistment)
         {
-            foreach (var pendingChange in _pendingChanges.Values)
+            foreach (var pendingChange in PendingChanges.Values)
             {
                 pendingChange.Rollback();
             }
@@ -73,13 +63,13 @@ namespace Snow.Core
         {
             var fileName = _fileNameProvider.GetDocumentFile<TDocument>(operation.Key).Name;
 
-            if (!_pendingChanges.ContainsKey(fileName))
+            if (!PendingChanges.ContainsKey(fileName))
             {
-                _pendingChanges.Add(fileName, operation);
+                PendingChanges.Add(fileName, operation);
             }
             else
             {
-                _pendingChanges[fileName] = operation;
+                PendingChanges[fileName] = operation;
             }
         }
     }

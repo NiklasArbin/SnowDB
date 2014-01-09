@@ -103,7 +103,11 @@ namespace Snow.Core
 
         public bool Exists
         {
-            get { return (_fileInfo.Exists); }
+            get
+            {
+                _fileInfo.Refresh();
+                return _fileInfo.Exists;
+            }
         }
 
         public string FullName
