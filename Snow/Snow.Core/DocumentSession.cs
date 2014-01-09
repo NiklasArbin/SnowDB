@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Transactions;
 using log4net;
 using Snow.Core.Lucene;
@@ -12,31 +11,24 @@ namespace Snow.Core
 
     public class DocumentSession : IDocumentSession
     {
-        private readonly Guid _resourceGuid;
-
         private ILog _log = LogManager.GetLogger(typeof(DocumentSession));
 
         private readonly IDocumentStore _store;
         private readonly IDocumentFileNameProvider _fileNameProvider;
         private readonly IDocumentSerializer _serializer;
         private readonly ISessionIndexer _sessionIndexer;
-        public Guid SessionId { get; private set; }
-
-        private readonly Encoding _encoding = new UTF8Encoding();
-        private readonly SortedDictionary<string, IOperation> _pendingChanges;
+        public Guid SessionGuid { get; private set; }
+        private readonly TransactionalResourceManager _resourceManager;
 
         public DocumentSession(IDocumentStore store, IDocumentSerializer serializer, IDocumentFileNameProvider fileNameProvider)
         {
             _store = store;
             _serializer = serializer;
             _fileNameProvider = fileNameProvider;
-            _pendingChanges = new SortedDictionary<string, IOperation>();
-            _resourceGuid = Guid.NewGuid();
-            SessionId = _resourceGuid;
-            _sessionIndexer = new SessionIndexer(SessionId, fileNameProvider);
+            SessionGuid = Guid.NewGuid();
+            _sessionIndexer = new SessionIndexer(SessionGuid, fileNameProvider);
+            _resourceManager = new TransactionalResourceManager(fileNameProvider);
         }
-
-
 
         public TDocument Get<TDocument>(string key) where TDocument : class
         {
@@ -64,55 +56,30 @@ namespace Snow.Core
 
         public void Save<TDocument>(TDocument document, string key) where TDocument : class
         {
-            AddOperation<TDocument>(new WriteOperation<TDocument>(_fileNameProvider, _serializer, _resourceGuid, _sessionIndexer) { Key = key, Document = document });
+            _resourceManager.AddOperation<TDocument>(new WriteOperation<TDocument>(_fileNameProvider, _serializer, SessionGuid, _sessionIndexer) { Key = key, Document = document });
         }
 
         public void Delete<TDocument>(string key) where TDocument : class
         {
-            AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, _resourceGuid) { Key = key });
+            _resourceManager.AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, SessionGuid) { Key = key });
         }
 
         public void SaveChanges()
         {
-
-            _sessionIndexer.Open();
-            var dir = _fileNameProvider.GetTransactionDirectory(_resourceGuid);
-            if (Transaction.Current != null)
+            using (var trx = new TransactionScope(TransactionScopeOption.Required))
             {
-                dir.Create();
-                _sessionIndexer.Prepare();
+                _resourceManager.Enlist(SessionGuid);
+                _resourceManager.Commit();
+                trx.Complete();
             }
-            foreach (var pendingChange in _pendingChanges.Values)
-            {
-                pendingChange.Execute();
-            }
-
-            _pendingChanges.Clear();
-
-            if (dir.Exists)
-            {
-                dir.Delete(true);
-            }
-            _sessionIndexer.Commit();
-        }
-
-        private void AddOperation<TDocument>(IOperation operation) where TDocument : class
-        {
-            var fileName = _fileNameProvider.GetDocumentFile<TDocument>(operation.Key).Name;
-
-            if (!_pendingChanges.ContainsKey(fileName))
-            {
-                _pendingChanges.Add(fileName, operation);
-            }
-            else
-            {
-                _pendingChanges[fileName] = operation;
-            }
+            //_sessionIndexer.Open();
+            //_sessionIndexer.Prepare();
+            //_sessionIndexer.Commit();
         }
 
         public void Dispose()
         {
-            _sessionIndexer.Dispose();
+            //_sessionIndexer.Dispose();
         }
     }
 }

@@ -61,7 +61,7 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            var key = "C8D16157-AEEF-461F-A9B0-673CA24E0F64";
+            var key = "E9B014D3-DD3C-4B20-9736-2C0970CE67A8";
             TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
 
             var document = new TestDocument

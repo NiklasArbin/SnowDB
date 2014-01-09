@@ -1,8 +1,13 @@
-﻿namespace Snow.Core.Operation
+﻿using System;
+
+namespace Snow.Core.Operation
 {
-    internal interface IOperation
+    public interface IOperation
     {
         string Key { get; set; }
-        void Execute();
+        Guid SessionGuid { get; }
+        void Prepare();
+        void Commit();
+        void Rollback();
     }
 }

@@ -6,19 +6,17 @@ namespace Snow.Core.Operation
 {
     internal class DeleteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
     {
-        public DeleteOperation(IDocumentFileNameProvider fileNameProvider, Guid resourceManagerGuid)
+        public DeleteOperation(IDocumentFileNameProvider fileNameProvider, Guid resourceManagerGuid) : base(resourceManagerGuid)
         {
             FileNameProvider = fileNameProvider;
-            ResourceManagerGuid = resourceManagerGuid;
         }
 
-        public override void Execute()
+        public override void Prepare()
         {
-            DocumentFile = FileNameProvider.GetDocumentFile<TDocument>(Key);
             if (!DocumentFile.Exists)
                 throw new DocumentNotFoundException("Document {0} does not exist".FormatWith(Key));
 
-            base.Execute();
+            base.Prepare();
         }
 
         protected override void Commit(IDocumentFile documentFile)
@@ -33,7 +31,7 @@ namespace Snow.Core.Operation
                 return;
             }
 
-            File.Copy(FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName, DocumentFile.FullName, true);
+            File.Copy(FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, DocumentFile.FullName, true);
         }
     }
 }

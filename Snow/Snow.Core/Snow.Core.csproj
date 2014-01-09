@@ -94,6 +94,7 @@
     <Compile Include="IDocumentStore.cs" />
     <Compile Include="Serializers\JsonNetSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TransactionalResourceManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

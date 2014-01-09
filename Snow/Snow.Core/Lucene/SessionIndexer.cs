@@ -20,7 +20,6 @@ namespace Snow.Core.Lucene
 
     internal class SessionIndexer : ISessionIndexer
     {
-        private readonly Guid _sessionId;
         private readonly IDocumentFileNameProvider _fileNameProvider;
         private const string SnowDbKeyName = "SnowDBKey";
 
@@ -32,7 +31,6 @@ namespace Snow.Core.Lucene
 
         public SessionIndexer(Guid sessionId, IDocumentFileNameProvider fileNameProvider)
         {
-            _sessionId = sessionId;
             _fileNameProvider = fileNameProvider;
             _sessionDirectory = fileNameProvider.GetLuceneSessionDirectory(sessionId);
         }
@@ -76,7 +74,7 @@ namespace Snow.Core.Lucene
 
         public void Rollback()
         {
-            _writer.Rollback();
+            //_writer.Rollback();
         }
 
         public void Dispose()

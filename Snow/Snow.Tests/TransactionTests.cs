@@ -56,6 +56,7 @@ namespace Snow.Tests
                 session.Save(document, key);
                 session.SaveChanges();
             }
+            fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
 
             using (var session = store.OpenSession())
             {

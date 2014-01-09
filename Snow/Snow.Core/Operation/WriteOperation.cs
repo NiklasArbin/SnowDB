@@ -10,19 +10,18 @@ namespace Snow.Core.Operation
         private readonly ISessionIndexer _snowIndexer;
         public object Document { get; set; }
 
-        public WriteOperation(IDocumentFileNameProvider fileNameProvider, IDocumentSerializer serializer, Guid resourceManagerGuid, ISessionIndexer snowIndexer)
+        public WriteOperation(IDocumentFileNameProvider fileNameProvider, IDocumentSerializer serializer, Guid resourceManagerGuid, ISessionIndexer snowIndexer):base(resourceManagerGuid)
         {
             FileNameProvider = fileNameProvider;
             _serializer = serializer;
             _snowIndexer = snowIndexer;
-            ResourceManagerGuid = resourceManagerGuid;
         }
 
         protected override void Commit(IDocumentFile documentFile)
         {
             var json = _serializer.Serialize(Document);
             documentFile.Write(json);
-            _snowIndexer.Add<TDocument>(Key, json);
+            //_snowIndexer.Add<TDocument>(Key, json);
         }
 
         protected override void Rollback()

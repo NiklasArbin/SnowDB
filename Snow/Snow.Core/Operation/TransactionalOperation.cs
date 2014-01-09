@@ -1,67 +1,52 @@
 using System;
 using System.IO;
-using System.Transactions;
 
 namespace Snow.Core.Operation
 {
-    internal abstract class TransactionalOperation<TDocument> : IOperation, IEnlistmentNotification
+    internal abstract class TransactionalOperation<TDocument> : IOperation
         where TDocument : class
     {
         protected IDocumentFileNameProvider FileNameProvider;
-        protected Guid ResourceManagerGuid;
-        protected IDocumentFile DocumentFile;
 
+        private IDocumentFile _docFile;
+        protected IDocumentFile DocumentFile
+        {
+            get { return _docFile ?? (_docFile = FileNameProvider.GetDocumentFile<TDocument>(Key)); }
+        }
+
+    
+        public Guid SessionGuid { get; private set; }
         public string Key { get; set; }
 
-        public virtual void Execute()
+        protected TransactionalOperation(Guid sessionGuid)
         {
-            DocumentFile = FileNameProvider.GetDocumentFile<TDocument>(Key);
-
-            if (Transaction.Current != null)
-            {
-                Transaction.Current.EnlistDurable(ResourceManagerGuid, this, EnlistmentOptions.None);
-            }
-            else
-            {
-                DocumentFile.Lock();
-                Commit(DocumentFile);
-            }
+            SessionGuid = sessionGuid;
         }
 
         protected abstract void Commit(IDocumentFile documentFile);
 
         
 
-        void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
+        public virtual void Prepare()
         {
             if (DocumentFile.Exists)
             {
-                File.Copy(FileNameProvider.GetDocumentFile<TDocument>(Key).FullName, FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName);
+                File.Copy(FileNameProvider.GetDocumentFile<TDocument>(Key).FullName, FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName);
             }
-
-            DocumentFile.Lock();
-            preparingEnlistment.Prepared();
         }
 
-
-
-        void IEnlistmentNotification.Commit(Enlistment enlistment)
+        public void Commit()
         {
+            DocumentFile.Lock();
             Commit(DocumentFile);
             DocumentFile.Unlock();
-            enlistment.Done();
-        }
-        protected abstract void Rollback();
-        void IEnlistmentNotification.Rollback(Enlistment enlistment)
-        {
-            Rollback();
-            enlistment.Done();
         }
 
-        void IEnlistmentNotification.InDoubt(Enlistment enlistment)
+        void IOperation.Rollback()
         {
-            //Not really sure what to do about this state yet...
-            enlistment.Done();
+            Rollback();
         }
+        protected abstract void Rollback();
+      
     }
 }
