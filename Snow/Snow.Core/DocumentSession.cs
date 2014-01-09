@@ -69,18 +69,14 @@ namespace Snow.Core
 
         private void Prepare()
         {
-            var dir = _fileNameProvider.GetTransactionDirectory(SessionGuid);
-            dir.Create();
 
-            foreach (var pendingChange in _resourceManager.PendingChanges.Values)
-            {
-                pendingChange.Prepare();
-            }
         }
 
         public void SaveChanges()
         {
-            Prepare();
+            if (Transaction.Current == null)
+                _resourceManager.Prepare();
+
             _resourceManager.Commit();
 
 

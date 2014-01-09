@@ -25,12 +25,12 @@ namespace Snow.Core.Operation
                 throw new DocumentNotFoundException("Document {0} does not exist".FormatWith(Key));
 
             File.Copy(_documentFile.FullName, _fileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, false);
-            _documentFile.Lock();
+            _documentFile.Delete();
         }
 
         public void Commit()
         {
-            _documentFile.Delete();
+            
         }
 
         public void Rollback()

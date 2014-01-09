@@ -24,8 +24,20 @@ namespace Snow.Core
             Transaction.Current.EnlistDurable(_sessionGuid, this, EnlistmentOptions.None);
         }
 
+        public void Prepare()
+        {
+            var dir = _fileNameProvider.GetTransactionDirectory(_sessionGuid);
+            dir.Create();
+
+            foreach (var pendingChange in PendingChanges.Values)
+            {
+                pendingChange.Prepare();
+            }
+        }
+
         void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
         {
+            Prepare();
             preparingEnlistment.Prepared();
         }
 
