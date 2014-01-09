@@ -27,7 +27,7 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 TestDocument document;
-                session.TryGet<TestDocument>(nonExistingKey, out document).Should().BeFalse();
+                session.TryGet(nonExistingKey, out document).Should().BeFalse();
             }
         }
 
