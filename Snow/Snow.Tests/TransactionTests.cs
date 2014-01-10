@@ -59,15 +59,23 @@ namespace Snow.Tests
 
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
 
-            using (var trx = new TransactionScope())
+            try
             {
-                using (var session = store.OpenSession())
+                using (var trx = new TransactionScope())
                 {
-                    session.Delete<TestDocument>(key);
+                    using (var session = store.OpenSession())
+                    {
+                        session.Delete<TestDocument>(key);
+                        Transaction.Current.Rollback();
+                    }
+                    trx.Complete();
                 }
-                Transaction.Current.Rollback();
             }
-            
+            catch (TransactionAbortedException)
+            {
+
+            }
+
             var fileThatShouldNotHaveBeenDeleted = fileNameProvider.GetDocumentFile<TestDocument>(key);
             fileThatShouldNotHaveBeenDeleted.Exists.Should().BeTrue();
             TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
