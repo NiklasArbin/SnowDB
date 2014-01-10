@@ -21,10 +21,12 @@ namespace Snow.Tests
         public void OpenSession_should_return_a_new_session()
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
-            var session = store.OpenSession();
 
-            session.Should().NotBeNull();
-            session.Should().BeAssignableTo<IDocumentSession>();
+            using (var session = store.OpenSession())
+            {
+                session.Should().NotBeNull();
+                session.Should().BeAssignableTo<IDocumentSession>();    
+            }
         }
 
         [Test]
@@ -55,9 +57,9 @@ namespace Snow.Tests
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, "NonExistingDatabase");
             using (var session = store.OpenSession())
             {
-
+                fileNameProvider.DatabaseDirectory.Exists.Should().BeTrue();
             }
-            fileNameProvider.DatabaseDirectory.Exists.Should().BeTrue();
+            
         }
 
         [TearDown]

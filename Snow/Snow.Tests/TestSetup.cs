@@ -4,7 +4,6 @@ using NUnit.Framework;
 
 namespace Snow.Tests
 {
-    [SetUpFixture]
     public class TestSetup
     {
         public const string DataDir = @"c:\temp";

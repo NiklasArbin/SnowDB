@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using Snow.Core;
@@ -27,7 +28,7 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 TestDocument document;
-                session.TryGet<TestDocument>(nonExistingKey, out document).Should().BeFalse();
+                session.TryGet(nonExistingKey, out document).Should().BeFalse();
             }
         }
 
@@ -49,7 +50,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Save(document, key);
-                session.SaveChanges();
             }
 
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
@@ -61,7 +61,7 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            var key = "C8D16157-AEEF-461F-A9B0-673CA24E0F64";
+            var key = "E9B014D3-DD3C-4B20-9736-2C0970CE67A8";
             TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
 
             var document = new TestDocument
@@ -73,7 +73,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Save(document, key);
-                session.SaveChanges();
             }
 
             fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
@@ -82,7 +81,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Delete<TestDocument>(key);
-                session.SaveChanges();
             }
 
 
@@ -106,7 +104,6 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 session.Save(document, key);
-                session.SaveChanges();
             }
 
             TestDocument retrievedDocument;
@@ -141,7 +138,6 @@ namespace Snow.Tests
             {
                 session.Save(document, key);
                 session.Save(document2, key);
-                session.SaveChanges();
             }
 
             TestDocument readDocument;

@@ -4,31 +4,46 @@ using Snow.Core.Serializers;
 
 namespace Snow.Core.Operation
 {
-    internal class WriteOperation<TDocument> : TransactionalOperation<TDocument> where TDocument : class
+    internal class WriteOperation<TDocument> : IOperation where TDocument : class
     {
+        private readonly TDocument _document;
+        private readonly IDocumentFile _documentFile;
         private readonly IDocumentSerializer _serializer;
         private readonly ISessionIndexer _snowIndexer;
-        public object Document { get; set; }
+        private readonly IDocumentFileNameProvider _fileNameProvider;
 
-        public WriteOperation(IDocumentFileNameProvider fileNameProvider, IDocumentSerializer serializer, Guid resourceManagerGuid, ISessionIndexer snowIndexer)
+        public string Key { get; set; }
+        public Guid SessionGuid { get; private set; }
+
+        public WriteOperation(TDocument document, string key, IDocumentSerializer serializer, Guid sessionGuid, ISessionIndexer snowIndexer, IDocumentFileNameProvider fileNameProvider)
         {
-            FileNameProvider = fileNameProvider;
+            SessionGuid = sessionGuid;
+            Key = key;
+
+            _document = document;
+            _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key);
             _serializer = serializer;
             _snowIndexer = snowIndexer;
-            ResourceManagerGuid = resourceManagerGuid;
+            _fileNameProvider = fileNameProvider;
         }
 
-        protected override void Commit(IDocumentFile documentFile)
+        public void Prepare()
         {
-            var json = _serializer.Serialize(Document);
-            documentFile.Write(json);
-            _snowIndexer.Add<TDocument>(Key, json);
+            _documentFile.Lock();
+            var json = _serializer.Serialize(_document);
+            _documentFile.Write(json);
+            _documentFile.Unlock();
         }
 
-        protected override void Rollback()
+        public void Commit()
         {
-            _snowIndexer.Rollback();
+            
+        }
+
+        public void Rollback()
+        {
             //TODO:Rollback....determine if new or existing
+            //_snowIndexer.Rollback();
         }
     }
 }

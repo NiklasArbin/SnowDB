@@ -1,67 +1,48 @@
 using System;
 using System.IO;
-using System.Transactions;
 
 namespace Snow.Core.Operation
 {
-    internal abstract class TransactionalOperation<TDocument> : IOperation, IEnlistmentNotification
-        where TDocument : class
-    {
-        protected IDocumentFileNameProvider FileNameProvider;
-        protected Guid ResourceManagerGuid;
-        protected IDocumentFile DocumentFile;
+    //internal abstract class TransactionalOperation<TDocument> : IOperation
+    //    where TDocument : class
+    //{
+    //    protected IDocumentFileNameProvider FileNameProvider;
 
-        public string Key { get; set; }
+    //    private IDocumentFile _docFile;
+    //    protected IDocumentFile DocumentFile
+    //    {
+    //        get { return _docFile ?? (_docFile = FileNameProvider.GetDocumentFile<TDocument>(Key)); }
+    //    }
 
-        public virtual void Execute()
-        {
-            DocumentFile = FileNameProvider.GetDocumentFile<TDocument>(Key);
+    
+    //    public Guid SessionGuid { get; private set; }
+    //    public string Key { get; set; }
 
-            if (Transaction.Current != null)
-            {
-                Transaction.Current.EnlistDurable(ResourceManagerGuid, this, EnlistmentOptions.None);
-            }
-            else
-            {
-                DocumentFile.Lock();
-                Commit(DocumentFile);
-            }
-        }
+    //    protected TransactionalOperation(Guid sessionGuid)
+    //    {
+    //        SessionGuid = sessionGuid;
+    //    }
 
-        protected abstract void Commit(IDocumentFile documentFile);
+    //    protected abstract void Commit(IDocumentFile documentFile);
 
         
 
-        void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
-        {
-            if (DocumentFile.Exists)
-            {
-                File.Copy(FileNameProvider.GetDocumentFile<TDocument>(Key).FullName, FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, ResourceManagerGuid).FullName);
-            }
+    //    public virtual void Prepare()
+    //    {
+    //        if (DocumentFile.Exists)
+    //        {
+    //            File.Copy(FileNameProvider.GetDocumentFile<TDocument>(Key).FullName, FileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName);
+    //        }
+    //    }
 
-            DocumentFile.Lock();
-            preparingEnlistment.Prepared();
-        }
+    //    public abstract void Commit();
+       
 
-
-
-        void IEnlistmentNotification.Commit(Enlistment enlistment)
-        {
-            Commit(DocumentFile);
-            DocumentFile.Unlock();
-            enlistment.Done();
-        }
-        protected abstract void Rollback();
-        void IEnlistmentNotification.Rollback(Enlistment enlistment)
-        {
-            Rollback();
-            enlistment.Done();
-        }
-
-        void IEnlistmentNotification.InDoubt(Enlistment enlistment)
-        {
-            //Not really sure what to do about this state yet...
-            enlistment.Done();
-        }
-    }
+    //    void IOperation.Rollback()
+    //    {
+    //        Rollback();
+    //    }
+    //    protected abstract void Rollback();
+      
+    //}
 }
