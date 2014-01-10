@@ -60,7 +60,7 @@ namespace Snow.Tests
         }
 
         [Test]
-        public void A_deleted_document_in_a_seperate_transaction_should_not_be_deleted_in_a_previously_started_transaction()
+        public void A_document_deleted_in_a_seperate_transaction_should_not_be_deleted_in_a_previously_started_transaction()
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
 
@@ -83,6 +83,38 @@ namespace Snow.Tests
                 using (var session2 = store.OpenSession())
                 {
                     session2.Invoking(s => s.Get<TestDocument>(Key)).ShouldNotThrow<DocumentNotFoundException>();
+                }
+                outer.Complete();
+            }
+        }
+
+        [Test]
+        public void A_document_changed_in_a_seperate_transaction_should_not_be_deleted_in_a_previously_started_transaction()
+        {
+            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+
+            using (var session = store.OpenSession())
+            {
+                session.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, Key);
+            }
+
+            using (var outer = new TransactionScope())
+            {
+                using (var nestedButSeperate = new TransactionScope(TransactionScopeOption.RequiresNew))
+                {
+                    using (var session1 = store.OpenSession())
+                    {
+                        var doc = session1.Get<TestDocument>(Key);
+                        doc.SomeInt = 2;
+                        session1.Save(doc, Key);
+                    }
+                    nestedButSeperate.Complete();
+                }
+
+                using (var session2 = store.OpenSession())
+                {
+                    var docThatShouldNotHaveBeenChanged = session2.Get<TestDocument>(Key);
+                    docThatShouldNotHaveBeenChanged.SomeInt.Should().Be(1);
                 }
                 outer.Complete();
             }
