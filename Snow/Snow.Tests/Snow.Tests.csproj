@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="DocumentFileTests.cs" />
     <Compile Include="FlattenJsonTests.cs" />
+    <Compile Include="IsolationTests.cs" />
     <Compile Include="TestDocument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SessionTests.cs" />
