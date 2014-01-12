@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Snow.Core.Operation
+﻿namespace Snow.Core.Operation
 {
     internal interface ISnowTransaction
     {

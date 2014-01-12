@@ -59,7 +59,7 @@ namespace Snow.Core
 
         public void Save<TDocument>(TDocument document, string key) where TDocument : class
         {
-            _resourceManager.AddOperation<TDocument>(new WriteOperation<TDocument>(document, key, _serializer, SessionGuid, _sessionIndexer, _fileNameProvider));
+            _resourceManager.AddOperation<TDocument>(new UpdateOperation<TDocument>(document, key, _serializer, SessionGuid, _sessionIndexer, _fileNameProvider));
         }
 
         public void Delete<TDocument>(string key) where TDocument : class

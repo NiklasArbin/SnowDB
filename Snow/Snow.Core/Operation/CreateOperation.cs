@@ -4,7 +4,7 @@ using Snow.Core.Serializers;
 
 namespace Snow.Core.Operation
 {
-    internal class WriteOperation<TDocument> : IOperation where TDocument : class
+    internal class CreateOperation<TDocument> : IOperation where TDocument : class
     {
         private readonly TDocument _document;
         private readonly IDocumentFile _documentFile;
@@ -15,7 +15,7 @@ namespace Snow.Core.Operation
         public string Key { get; set; }
         public Guid SessionGuid { get; private set; }
 
-        public WriteOperation(TDocument document, string key, IDocumentSerializer serializer, Guid sessionGuid, ISessionIndexer snowIndexer, IDocumentFileNameProvider fileNameProvider)
+        public CreateOperation(TDocument document, string key, IDocumentSerializer serializer, Guid sessionGuid, ISessionIndexer snowIndexer, IDocumentFileNameProvider fileNameProvider)
         {
             SessionGuid = sessionGuid;
             Key = key;

@@ -78,15 +78,15 @@
     <Compile Include="Lucene\IndexSyncronizer.cs" />
     <Compile Include="Lucene\SessionIndexer.cs" />
     <Compile Include="Lucene\JsonToLuceneConverter.cs" />
+    <Compile Include="Operation\CreateOperation.cs" />
     <Compile Include="Operation\DeleteOperation.cs" />
     <Compile Include="IDateTimeNow.cs" />
     <Compile Include="Operation\ISnowTransaction.cs" />
     <Compile Include="Serializers\FastJsonSerializer.cs" />
     <Compile Include="SnowConnectionStringBuilder.cs" />
-    <Compile Include="Operation\TransactionalOperation.cs" />
     <Compile Include="Operation\IOperation.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Operation\WriteOperation.cs" />
+    <Compile Include="Operation\UpdateOperation.cs" />
     <Compile Include="Serializers\IDocumentSerializer.cs" />
     <Compile Include="DocumentSession.cs" />
     <Compile Include="DocumentStore.cs" />
