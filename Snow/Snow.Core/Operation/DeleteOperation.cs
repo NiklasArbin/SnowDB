@@ -9,14 +9,14 @@ namespace Snow.Core.Operation
         private readonly IDocumentFileNameProvider _fileNameProvider;
         public string Key { get; set; }
         public Guid SessionGuid { get; private set; }
-        private readonly IDocumentFile _documentFile;
+        private readonly IDocumentFile<TDocument> _documentFile;
 
-        public DeleteOperation(IDocumentFileNameProvider fileNameProvider, string key, Guid sessionGuid)
+        public DeleteOperation(IDocumentFileNameProvider fileNameProvider, string key, Guid sessionGuid, DateTime sessionStamp)
         {
             Key = key;
             _fileNameProvider = fileNameProvider;
             SessionGuid = sessionGuid;
-            _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key);
+            _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key, sessionStamp);
         }
 
         public void Prepare()

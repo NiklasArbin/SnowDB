@@ -9,13 +9,14 @@ namespace Snow.Tests
     public class SessionTests
     {
         private const string Key = "98CD87C0-1631-4CB9-BFC6-306CCBD15C8F";
+        private const string NonExistingKey = "86DF4E87-35DC-489F-BA13-2A802AB9A693";
 
         [TearDown]
         public void TearDown()
         {
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(Key).FullName);
-            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument2>(Key).FullName);
+            TestSetup.SafeDeleteDocument<TestDocument>(Key);
+            TestSetup.SafeDeleteDocument<TestDocument2>(Key);
         }
 
         [Test]
@@ -24,7 +25,7 @@ namespace Snow.Tests
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             using (var session = store.OpenSession())
             {
-                session.Invoking(x => x.Get<TestDocument>(Key)).ShouldThrow<DocumentNotFoundException>();
+                session.Invoking(x => x.Get<TestDocument>(NonExistingKey)).ShouldThrow<DocumentNotFoundException>();
             }
         }
 
@@ -35,7 +36,7 @@ namespace Snow.Tests
             using (var session = store.OpenSession())
             {
                 TestDocument document;
-                session.TryGet(Key, out document).Should().BeFalse();
+                session.TryGet(NonExistingKey, out document).Should().BeFalse();
             }
         }
 
@@ -44,7 +45,7 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            
+
 
             var document = new TestDocument
             {
@@ -58,7 +59,7 @@ namespace Snow.Tests
                 session.Save(document, Key);
             }
 
-            fileNameProvider.GetDocumentFile<TestDocument>(Key).Exists.Should().BeTrue();
+            fileNameProvider.GetDocumentFile<TestDocument>(Key, DateTime.Now).Exists.Should().BeTrue();
         }
 
         [Test]
@@ -66,7 +67,7 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            
+
             var document = new TestDocument
             {
                 SomeInt = 1,
@@ -78,7 +79,7 @@ namespace Snow.Tests
                 session.Save(document, Key);
             }
 
-            fileNameProvider.GetDocumentFile<TestDocument>(Key).Exists.Should().BeTrue();
+            fileNameProvider.GetDocumentFile<TestDocument>(Key, DateTime.Now).Exists.Should().BeTrue();
 
 
             using (var session = store.OpenSession())
@@ -87,7 +88,7 @@ namespace Snow.Tests
             }
 
 
-            fileNameProvider.GetDocumentFile<TestDocument>(Key).Exists.Should().BeFalse();
+            fileNameProvider.GetDocumentFile<TestDocument>(Key, DateTime.Now).Exists.Should().BeFalse();
         }
 
         [Test]
@@ -95,8 +96,8 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            
-            
+
+
             var document = new TestDocument
             {
                 SomeInt = 1,
@@ -124,14 +125,14 @@ namespace Snow.Tests
         public void Save_should_be_able_to_save_two_different_types_of_documents_with_the_same_key()
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
-            
+
             var document = new TestDocument
             {
                 SomeInt = 1,
                 SomeString = "Stringaling",
                 SomeSubClassProperty = new TestDocument.SomeSubClass()
             };
-            var document2 = new TestDocument2 {AString = "AString"};
+            var document2 = new TestDocument2 { AString = "AString" };
 
             using (var session = store.OpenSession())
             {
@@ -142,7 +143,7 @@ namespace Snow.Tests
             TestDocument readDocument;
             TestDocument2 reaDocument2;
 
-            using (var session = store.OpenSession()) 
+            using (var session = store.OpenSession())
             {
                 readDocument = session.Get<TestDocument>(Key);
                 reaDocument2 = session.Get<TestDocument2>(Key);

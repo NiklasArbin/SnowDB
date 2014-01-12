@@ -6,12 +6,12 @@ namespace Snow.Core
     public interface IDocumentFileNameProvider
     {
         DirectoryInfo DatabaseDirectory { get; }
-        DirectoryInfo DatabaseTransactionRootDirectory { get; }
+        //DirectoryInfo DatabaseTransactionRootDirectory { get; }
         //DirectoryInfo GetTransactionDirectory<TDocument>(Guid resourceManagerGuid) where TDocument : class;
         DirectoryInfo GetLuceneRootDirectory();
         DirectoryInfo GetLuceneSessionDirectory(Guid sessionId);
         DirectoryInfo GetLuceneDirectory();
-        IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class;
+        IDocumentFile<TDocument> GetDocumentFile<TDocument>(string key, DateTime sessionStamp) where TDocument : class;
         //IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class;
 
     }
@@ -32,7 +32,7 @@ namespace Snow.Core
         }
 
         public DirectoryInfo DatabaseDirectory { get { return _databaseDirectory; } }
-        public DirectoryInfo DatabaseTransactionRootDirectory { get { return _transactionRootDirectory; } }
+        //public DirectoryInfo DatabaseTransactionRootDirectory { get { return _transactionRootDirectory; } }
 
         //public DirectoryInfo GetTransactionDirectory<TDocument>(Guid resourceManagerGuid) where TDocument : class
         //{
@@ -54,8 +54,8 @@ namespace Snow.Core
             return new DirectoryInfo(_databaseDirectory.FullName + "\\" + LuceneDirectoryName + "\\main");
         }
 
-
-        public IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class
+        
+        public IDocumentFile<TDocument> GetDocumentFile<TDocument>(string key, DateTime sessionStamp) where TDocument : class
         {
             var documentTypeDirectory = GetDocumentDirectory(typeof(TDocument));
             if (!Directory.Exists(documentTypeDirectory))
@@ -63,7 +63,7 @@ namespace Snow.Core
                 Directory.CreateDirectory(documentTypeDirectory); 
             }
 
-            return new DocumentFile(documentTypeDirectory + "\\" + GetFileName(key), DateTimeNow);
+            return new DocumentFile<TDocument>(key, DateTimeNow, this, sessionStamp);
         }
 
         //public IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class

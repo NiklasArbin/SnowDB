@@ -23,7 +23,7 @@ namespace Snow.Tests
                 SomeString = "Stringaling"
             };
             var key = "B8343419-F8CE-4993-A2E8-6DB763D5AEF1";
-            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
+            TestSetup.SafeDeleteDocument<TestDocument>(key);
 
             using (var trx = new TransactionScope())
             {
@@ -34,7 +34,7 @@ namespace Snow.Tests
                 }
             }
 
-            fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeFalse();
+            fileNameProvider.GetDocumentFile<TestDocument>(key, DateTime.Now).Exists.Should().BeFalse();
 
         }
 
@@ -57,7 +57,7 @@ namespace Snow.Tests
                 session.Save(document, key);
             }
 
-            fileNameProvider.GetDocumentFile<TestDocument>(key).Exists.Should().BeTrue();
+            fileNameProvider.GetDocumentFile<TestDocument>(key, DateTime.Now).Exists.Should().BeTrue();
 
             try
             {
@@ -76,9 +76,9 @@ namespace Snow.Tests
 
             }
 
-            var fileThatShouldNotHaveBeenDeleted = fileNameProvider.GetDocumentFile<TestDocument>(key);
+            var fileThatShouldNotHaveBeenDeleted = fileNameProvider.GetDocumentFile<TestDocument>(key, DateTime.Now);
             fileThatShouldNotHaveBeenDeleted.Exists.Should().BeTrue();
-            TestSetup.SafeDeleteDocument(fileNameProvider.GetDocumentFile<TestDocument>(key).FullName);
+            TestSetup.SafeDeleteDocument<TestDocument>(key);
         }
 
         [Test]
@@ -107,8 +107,8 @@ namespace Snow.Tests
 
             foreach (var guid in guids)
             {
-                fileNameProvider.GetDocumentFile<TestDocument>(guid.ToString()).Exists.Should().BeTrue();
-                fileNameProvider.GetDocumentFile<TestDocument>(guid.ToString()).Delete();
+                fileNameProvider.GetDocumentFile<TestDocument>(guid.ToString(), DateTime.Now).Exists.Should().BeTrue();
+                fileNameProvider.GetDocumentFile<TestDocument>(guid.ToString(), DateTime.Now).Delete();
             }
         }
     }

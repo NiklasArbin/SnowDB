@@ -19,6 +19,7 @@ namespace Snow.Core
         public Guid SessionGuid { get; private set; }
         private readonly TransactionalResourceManager _resourceManager;
         private TransactionScope _trx;
+        private DateTime _sessionStamp;
 
         public DocumentSession(IDocumentStore store, IDocumentSerializer serializer, IDocumentFileNameProvider fileNameProvider)
         {
@@ -26,16 +27,17 @@ namespace Snow.Core
             _serializer = serializer;
             _fileNameProvider = fileNameProvider;
             SessionGuid = Guid.NewGuid();
+            _sessionStamp = DateTime.Now;
             _sessionIndexer = new SessionIndexer(SessionGuid, fileNameProvider);
             _resourceManager = new TransactionalResourceManager(fileNameProvider, SessionGuid);
 
             _trx = new TransactionScope(TransactionScopeOption.Required);
-            _resourceManager.Enlist(); 
+            _resourceManager.Enlist();
         }
 
         public TDocument Get<TDocument>(string key) where TDocument : class
         {
-            var file = _fileNameProvider.GetDocumentFile<TDocument>(key);
+            var file = _fileNameProvider.GetDocumentFile<TDocument>(key, _sessionStamp);
             if (!file.Exists)
                 throw new DocumentNotFoundException(String.Format("Document {0} does not exist", key));
 
@@ -59,12 +61,12 @@ namespace Snow.Core
 
         public void Save<TDocument>(TDocument document, string key) where TDocument : class
         {
-            _resourceManager.AddOperation<TDocument>(new UpdateOperation<TDocument>(document, key, _serializer, SessionGuid, _sessionIndexer, _fileNameProvider));
+            _resourceManager.AddOperation<TDocument>(new UpdateOperation<TDocument>(document, key, _serializer, SessionGuid, _sessionIndexer, _fileNameProvider, _sessionStamp));
         }
 
         public void Delete<TDocument>(string key) where TDocument : class
         {
-            _resourceManager.AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, key, SessionGuid));
+            _resourceManager.AddOperation<TDocument>(new DeleteOperation<TDocument>(_fileNameProvider, key, SessionGuid, _sessionStamp));
         }
 
         private void SaveChanges()

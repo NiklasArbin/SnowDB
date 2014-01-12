@@ -7,7 +7,7 @@ namespace Snow.Core.Operation
     internal class UpdateOperation<TDocument> : IOperation where TDocument : class
     {
         private readonly TDocument _document;
-        private readonly IDocumentFile _documentFile;
+        private readonly IDocumentFile<TDocument> _documentFile;
         private readonly IDocumentSerializer _serializer;
         private readonly ISessionIndexer _snowIndexer;
         private readonly IDocumentFileNameProvider _fileNameProvider;
@@ -15,13 +15,14 @@ namespace Snow.Core.Operation
         public string Key { get; set; }
         public Guid SessionGuid { get; private set; }
 
-        public UpdateOperation(TDocument document, string key, IDocumentSerializer serializer, Guid sessionGuid, ISessionIndexer snowIndexer, IDocumentFileNameProvider fileNameProvider)
+        public UpdateOperation(TDocument document, string key, IDocumentSerializer serializer, Guid sessionGuid, ISessionIndexer snowIndexer, IDocumentFileNameProvider fileNameProvider, DateTime sessionStamp
+            )
         {
             SessionGuid = sessionGuid;
             Key = key;
 
             _document = document;
-            _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key);
+            _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key, sessionStamp);
             _serializer = serializer;
             _snowIndexer = snowIndexer;
             _fileNameProvider = fileNameProvider;

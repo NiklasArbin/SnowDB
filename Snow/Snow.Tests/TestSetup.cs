@@ -1,6 +1,8 @@
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using NUnit.Framework;
+using Snow.Core;
 
 namespace Snow.Tests
 {
@@ -16,10 +18,11 @@ namespace Snow.Tests
                 Directory.CreateDirectory(DataDir);
         }
 
-        public static void SafeDeleteDocument(string path)
+        public static void SafeDeleteDocument<TDocument>(string key)
         {
-            if(File.Exists(path))
-                File.Delete(path);
+            var documentFileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
+            var file = new DocumentFile<TDocument>(key, new DateTimeNow(), documentFileNameProvider, DateTime.Now);
+            file.Delete();
         }
     }
 }

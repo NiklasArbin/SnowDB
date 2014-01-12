@@ -6,7 +6,7 @@ namespace Snow.Core.Operation
     internal class CreateOperation<TDocument> : IOperation where TDocument : class
     {
         private readonly TDocument _document;
-        private readonly IDocumentFile _documentFile;
+        private readonly IDocumentFile<TDocument> _documentFile;
         private readonly IDocumentSerializer _serializer;
         private readonly DateTime _sessionDateStamp;
 
@@ -19,7 +19,7 @@ namespace Snow.Core.Operation
             Key = key;
 
             _document = document;
-            _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key);
+            _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key, sessionDateStamp);
             _serializer = serializer;
             _sessionDateStamp = sessionDateStamp;
         }
