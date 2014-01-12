@@ -1,6 +1,5 @@
 ﻿using System;
 using FluentAssertions;
-using Moq;
 using NUnit.Framework;
 using Snow.Core;
 
@@ -22,6 +21,7 @@ namespace Snow.Tests
 
             documentFile1.Lock();
             documentFile2.Invoking(x => x.Lock()).ShouldThrow<DocumentFileTimeoutException>();
+            documentFile1.Delete();
         }
     }
 

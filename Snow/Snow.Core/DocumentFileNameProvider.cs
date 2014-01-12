@@ -1,5 +1,4 @@
 using System;
-using System.CodeDom;
 using System.IO;
 
 namespace Snow.Core
@@ -8,12 +7,12 @@ namespace Snow.Core
     {
         DirectoryInfo DatabaseDirectory { get; }
         DirectoryInfo DatabaseTransactionRootDirectory { get; }
-        DirectoryInfo GetTransactionDirectory(Guid resourceManagerGuid);
+        //DirectoryInfo GetTransactionDirectory<TDocument>(Guid resourceManagerGuid) where TDocument : class;
         DirectoryInfo GetLuceneRootDirectory();
         DirectoryInfo GetLuceneSessionDirectory(Guid sessionId);
         DirectoryInfo GetLuceneDirectory();
         IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class;
-        IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class;
+        //IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class;
 
     }
 
@@ -35,10 +34,10 @@ namespace Snow.Core
         public DirectoryInfo DatabaseDirectory { get { return _databaseDirectory; } }
         public DirectoryInfo DatabaseTransactionRootDirectory { get { return _transactionRootDirectory; } }
 
-        public DirectoryInfo GetTransactionDirectory(Guid resourceManagerGuid)
-        {
-            return new DirectoryInfo(_transactionRootDirectory.FullName + "\\" + resourceManagerGuid);
-        }
+        //public DirectoryInfo GetTransactionDirectory<TDocument>(Guid resourceManagerGuid) where TDocument : class
+        //{
+        //    return new DirectoryInfo(GetDocumentDirectory(typeof(TDocument)) + "\\" + resourceManagerGuid);
+        //}
 
         public DirectoryInfo GetLuceneRootDirectory()
         {
@@ -47,7 +46,7 @@ namespace Snow.Core
 
         public DirectoryInfo GetLuceneSessionDirectory(Guid sessionId)
         {
-            return new DirectoryInfo(_databaseDirectory.FullName + "\\" + LuceneDirectoryName +"\\" +sessionId);
+            return new DirectoryInfo(_databaseDirectory.FullName + "\\" + LuceneDirectoryName + "\\" + sessionId);
         }
 
         public DirectoryInfo GetLuceneDirectory()
@@ -58,17 +57,28 @@ namespace Snow.Core
 
         public IDocumentFile GetDocumentFile<TDocument>(string key) where TDocument : class
         {
-            return new DocumentFile(_databaseDirectory.FullName + "\\" + GetFileName(typeof(TDocument), key), DateTimeNow);
+            var documentTypeDirectory = GetDocumentDirectory(typeof(TDocument));
+            if (!Directory.Exists(documentTypeDirectory))
+            {
+                Directory.CreateDirectory(documentTypeDirectory); 
+            }
+
+            return new DocumentFile(documentTypeDirectory + "\\" + GetFileName(key), DateTimeNow);
         }
 
-        public IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class
+        //public IDocumentFile GetDocumentTransactionBackupFile<TDocument>(string key, Guid resourceManagerGuid) where TDocument : class
+        //{
+        //    return new DocumentFile(GetTransactionDirectory<TDocument>(resourceManagerGuid).FullName + "\\" + GetFileName(key), DateTimeNow);
+        //}
+
+        private static string GetFileName(string key)
         {
-            return new DocumentFile(GetTransactionDirectory(resourceManagerGuid).FullName + "\\" + GetFileName(typeof(TDocument), key), DateTimeNow);
+            return String.Format("{0}.{1}", key, FileExtension);
         }
 
-        private static string GetFileName(Type type, string key)
+        private string GetDocumentDirectory(Type type)
         {
-            return String.Format("{0}.{1}.{2}", type.Name, key, FileExtension);
+            return String.Format("{0}\\{1}", _databaseDirectory.FullName, type.FullName);
         }
     }
 }

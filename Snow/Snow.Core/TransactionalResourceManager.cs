@@ -29,9 +29,6 @@ namespace Snow.Core
         {
             if (PendingChanges.Any())
             {
-                var dir = _fileNameProvider.GetTransactionDirectory(_sessionGuid);
-                dir.Create();
-
                 foreach (var pendingChange in PendingChanges.Values)
                 {
                     pendingChange.Prepare();
@@ -48,8 +45,6 @@ namespace Snow.Core
         void IEnlistmentNotification.Commit(Enlistment enlistment)
         {
             PendingChanges.Clear();
-            var dir = _fileNameProvider.GetTransactionDirectory(_sessionGuid);
-            dir.Delete(true);
             enlistment.Done();
         }
 
@@ -69,15 +64,15 @@ namespace Snow.Core
 
         public void AddOperation<TDocument>(IOperation operation) where TDocument : class
         {
-            var fileName = _fileNameProvider.GetDocumentFile<TDocument>(operation.Key).Name;
+            var uniqueKey = String.Format("{0}.{1}", typeof(TDocument).FullName, operation.Key);
 
-            if (!PendingChanges.ContainsKey(fileName))
+            if (!PendingChanges.ContainsKey(uniqueKey))
             {
-                PendingChanges.Add(fileName, operation);
+                PendingChanges.Add(uniqueKey, operation);
             }
             else
             {
-                PendingChanges[fileName] = operation;
+                PendingChanges[uniqueKey] = operation;
             }
         }
     }

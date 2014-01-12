@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Snow.Core.Extensions;
 
@@ -94,11 +95,18 @@ namespace Snow.Core
 
         private Stream GetStream()
         {
-            if (_fileStream == null)
-            {
-                _fileStream = _fileStream = OpenFileOrWait(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read);
-            }
-            return _fileStream;
+            return _fileStream ?? (_fileStream = _fileStream = OpenFileOrWait(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read));
+        }
+
+        private string GetValidFileVersion<TDocument>(string key, DateTime sessionStamp)
+        {
+            var searchPattern = String.Format("{0}.*.{1}", key, "json");
+            var fileInfo =
+                _fileInfo.Directory.GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
+                    .Where(x => x.LastWriteTime <= sessionStamp)
+                    .OrderByDescending(x => x.LastWriteTime)
+                    .FirstOrDefault();
+            return null;
         }
 
         public bool Exists
@@ -151,12 +159,5 @@ namespace Snow.Core
         {
             Unlock();
         }
-    }
-
-    public class DocumentFileTimeoutException : Exception
-    {
-        public DocumentFileTimeoutException(string message)
-            : base(message)
-        { }
     }
 }

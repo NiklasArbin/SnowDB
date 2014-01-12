@@ -74,6 +74,7 @@
     <Compile Include="DateTimeNow.cs" />
     <Compile Include="DocumentFile.cs" />
     <Compile Include="DocumentFileNameProvider.cs" />
+    <Compile Include="DocumentFileTimeoutException.cs" />
     <Compile Include="DocumentNotFoundException.cs" />
     <Compile Include="Lucene\IndexSyncronizer.cs" />
     <Compile Include="Lucene\SessionIndexer.cs" />

@@ -1,5 +1,4 @@
 using System;
-using Snow.Core.Lucene;
 using Snow.Core.Serializers;
 
 namespace Snow.Core.Operation
@@ -9,13 +8,12 @@ namespace Snow.Core.Operation
         private readonly TDocument _document;
         private readonly IDocumentFile _documentFile;
         private readonly IDocumentSerializer _serializer;
-        private readonly ISessionIndexer _snowIndexer;
-        private readonly IDocumentFileNameProvider _fileNameProvider;
+        private readonly DateTime _sessionDateStamp;
 
         public string Key { get; set; }
         public Guid SessionGuid { get; private set; }
 
-        public CreateOperation(TDocument document, string key, IDocumentSerializer serializer, Guid sessionGuid, ISessionIndexer snowIndexer, IDocumentFileNameProvider fileNameProvider)
+        public CreateOperation(TDocument document, string key, IDocumentSerializer serializer, Guid sessionGuid, IDocumentFileNameProvider fileNameProvider, DateTime sessionDateStamp)
         {
             SessionGuid = sessionGuid;
             Key = key;
@@ -23,8 +21,7 @@ namespace Snow.Core.Operation
             _document = document;
             _documentFile = fileNameProvider.GetDocumentFile<TDocument>(Key);
             _serializer = serializer;
-            _snowIndexer = snowIndexer;
-            _fileNameProvider = fileNameProvider;
+            _sessionDateStamp = sessionDateStamp;
         }
 
         public void Prepare()
@@ -46,4 +43,6 @@ namespace Snow.Core.Operation
             //_snowIndexer.Rollback();
         }
     }
+
+    
 }

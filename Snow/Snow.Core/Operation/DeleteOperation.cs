@@ -23,7 +23,7 @@ namespace Snow.Core.Operation
         {
             if (!_documentFile.Exists)
                 throw new DocumentNotFoundException("Document {0} does not exist".FormatWith(Key));
-            File.Copy(_documentFile.FullName, _fileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, false);
+            //File.Copy(_documentFile.FullName, _fileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, false);
             _documentFile.Delete();
         }
 
@@ -39,7 +39,7 @@ namespace Snow.Core.Operation
                 return;
             }
 
-            File.Copy(_fileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, _documentFile.FullName, true);
+            //File.Copy(_fileNameProvider.GetDocumentTransactionBackupFile<TDocument>(Key, SessionGuid).FullName, _documentFile.FullName, true);
         }
     }
 }
