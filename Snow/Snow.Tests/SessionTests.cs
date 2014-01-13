@@ -80,7 +80,7 @@ namespace Snow.Tests
                 session.Save(document, Key);
             }
 
-            fileNameProvider.GetDocumentFile<TestDocument>(Key, DateTime.Now).Exists.Should().BeTrue();
+            fileNameProvider.GetDocumentFile<TestDocument>(Key, DateTime.UtcNow).Exists.Should().BeTrue();
 
 
             using (var session = store.OpenSession())
@@ -89,7 +89,7 @@ namespace Snow.Tests
             }
 
 
-            fileNameProvider.GetDocumentFile<TestDocument>(Key, DateTime.Now).Exists.Should().BeFalse();
+            fileNameProvider.GetDocumentFile<TestDocument>(Key, DateTime.UtcNow).Exists.Should().BeFalse();
         }
 
         [Test]

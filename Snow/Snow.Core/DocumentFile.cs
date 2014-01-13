@@ -42,8 +42,8 @@ namespace Snow.Core
             var searchPattern = String.Format("{0}.*", key);
             var fileInfo =
                 _documentDirectory.GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
-                    .Where(x => x.LastWriteTime <= _sessionStamp)
-                    .OrderByDescending(x => x.LastWriteTime)
+                    .Where(x => x.LastWriteTimeUtc <= _sessionStamp)
+                    .OrderByDescending(x => x.LastWriteTimeUtc)
                     .FirstOrDefault();
             if (fileInfo != null)
             {
@@ -58,7 +58,7 @@ namespace Snow.Core
             var searchPattern = String.Format("{0}.*.{1}", key, "json");
             var fileInfo =
                 _documentDirectory.GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
-                    .OrderByDescending(x => x.LastWriteTime)
+                    .OrderByDescending(x => x.LastWriteTimeUtc)
                     .FirstOrDefault();
             if (fileInfo != null)
             {
@@ -75,7 +75,7 @@ namespace Snow.Core
             _documentDirectory.Refresh();
             var fileInfo =
                 _documentDirectory.GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
-                    .OrderByDescending(x => x.LastWriteTime)
+                    .OrderByDescending(x => x.LastWriteTimeUtc)
                     .FirstOrDefault();
             if (fileInfo != null)
             {
