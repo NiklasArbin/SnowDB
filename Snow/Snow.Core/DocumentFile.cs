@@ -63,10 +63,10 @@ namespace Snow.Core
             if (fileInfo != null)
             {
                 var nextVersion = GetVersionFromFileName(fileInfo.Name) + 1;
-                return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.{2}.{3}", _documentDirectory.FullName, key, nextVersion, "json")));
+                return OpenFileForWriteAccess(_key, nextVersion, "json");
             }
 
-            return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.0.{2}", _documentDirectory.FullName, key, "json")));
+            return OpenFileForWriteAccess(_key, 0, "json");
         }
 
         private FileStream GetFileInfoForDelete(string key)
@@ -80,10 +80,10 @@ namespace Snow.Core
             if (fileInfo != null)
             {
                 var nextVersion = GetVersionFromFileName(fileInfo.Name) + 1;
-                return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.{2}.{3}", _documentDirectory.FullName, key, nextVersion, "deleted")));
+                return OpenFileForWriteAccess(_key, nextVersion, "deleted");
             }
 
-            return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.0.{2}", _documentDirectory.FullName, key, "deleted")));
+            return OpenFileForWriteAccess(_key, 0, "deleted");
         }
 
         private int GetVersionFromFileName(string fileName)
@@ -95,16 +95,16 @@ namespace Snow.Core
             return int.Parse(substring);
         }
 
-        
 
-        private FileStream OpenFileStreamOrWait(FileInfo fileInfo, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
+
+        private FileStream OpenFileStreamOrWait(FileInfo file, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
             var initalAccessTime = _dateTimeNow.Now;
             while ((_dateTimeNow.Now - initalAccessTime) < MaxWaitForFile)
             {
                 try
                 {
-                    return fileInfo.Open(fileMode, fileAccess, fileShare);
+                    return file.Open(fileMode, fileAccess, fileShare);
                 }
                 catch (IOException e)
                 {
@@ -119,7 +119,7 @@ namespace Snow.Core
                 }
             }
             var t = _dateTimeNow.Now - initalAccessTime;
-            throw new DocumentFileTimeoutException("Timeout occured when trying to access the file {0}".FormatWith(fileInfo.FullName));
+            throw new DocumentFileTimeoutException("Timeout occured when trying to access the file {0}".FormatWith(file.FullName));
         }
 
         private FileStream OpenFileForReadAccess(FileInfo fileInfo)
@@ -127,9 +127,22 @@ namespace Snow.Core
             return OpenFileStreamOrWait(fileInfo, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
-        private FileStream OpenFileForWriteAccess(FileInfo fileInfo)
+        private FileStream OpenFileForWriteAccess(string key, int version, string extension)
         {
-            return OpenFileStreamOrWait(fileInfo, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            var file = new FileInfo(String.Format("{0}\\{1}.{2}.{3}", _documentDirectory.FullName, key, version, extension));
+
+            try
+            {
+                return file.Open(FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            }
+            catch (IOException e)
+            {
+                if (!e.Message.EndsWith("exists."))
+                {
+                    throw;
+                }
+                return OpenFileForWriteAccess(key, ++version, extension);
+            }
         }
 
         public void Lock()
@@ -154,7 +167,6 @@ namespace Snow.Core
         {
             String content;
             var fileToRead = GetFileInfoForReadAccess(_key);
-
             using (var sr = new StreamReader(OpenFileForReadAccess(fileToRead)))
             {
                 content = sr.ReadToEnd();
