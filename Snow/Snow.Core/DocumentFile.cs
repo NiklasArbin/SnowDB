@@ -79,14 +79,16 @@ namespace Snow.Core
             return int.Parse(substring);
         }
 
-        private FileStream OpenFileForReadAccess(FileInfo fileInfo)
+        
+
+        private FileStream OpenFileStreamOrWait(FileInfo fileInfo, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
             var initalAccessTime = _dateTimeNow.Now;
             while ((_dateTimeNow.Now - initalAccessTime) < MaxWaitForFile)
             {
                 try
                 {
-                    return fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                    return fileInfo.Open(fileMode, fileAccess, fileShare);
                 }
                 catch (IOException e)
                 {
@@ -104,29 +106,14 @@ namespace Snow.Core
             throw new DocumentFileTimeoutException("Timeout occured when trying to access the file {0}".FormatWith(fileInfo.FullName));
         }
 
+        private FileStream OpenFileForReadAccess(FileInfo fileInfo)
+        {
+            return OpenFileStreamOrWait(fileInfo, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+
         private FileStream OpenFileForWriteAccess(FileInfo fileInfo)
         {
-            var initalAccessTime = _dateTimeNow.Now;
-            while ((_dateTimeNow.Now - initalAccessTime) < MaxWaitForFile)
-            {
-                try
-                {
-                    return fileInfo.Open(FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                }
-                catch (IOException e)
-                {
-                    if (e.Message.StartsWith("The process cannot access the file"))
-                    {
-                        Thread.Sleep(50);
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
-            var t = _dateTimeNow.Now - initalAccessTime;
-            throw new DocumentFileTimeoutException("Timeout occured when trying to access the file {0}".FormatWith(fileInfo.FullName));
+            return OpenFileStreamOrWait(fileInfo, FileMode.CreateNew, FileAccess.Write, FileShare.None);
         }
 
         public void Lock()
