@@ -38,8 +38,16 @@ namespace Snow.Core
 
         void IEnlistmentNotification.Prepare(PreparingEnlistment preparingEnlistment)
         {
-            Prepare();
-            preparingEnlistment.Done();
+
+            try
+            {
+                Prepare();
+                preparingEnlistment.Prepared();
+            }
+            catch (Exception e)
+            {
+                preparingEnlistment.ForceRollback();
+            }
         }
 
         void IEnlistmentNotification.Commit(Enlistment enlistment)

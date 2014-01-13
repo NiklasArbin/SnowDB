@@ -66,7 +66,7 @@ namespace Snow.Core
                 return OpenFileForWriteAccess(_key, nextVersion, "json");
             }
 
-            return OpenFileForWriteAccess(_key, 0, "json");
+            return OpenFileForWriteAccess(_key, 1, "json");
         }
 
         private FileStream GetFileInfoForDelete(string key)
@@ -83,7 +83,7 @@ namespace Snow.Core
                 return OpenFileForWriteAccess(_key, nextVersion, "deleted");
             }
 
-            return OpenFileForWriteAccess(_key, 0, "deleted");
+            return OpenFileForWriteAccess(_key, 1, "deleted");
         }
 
         private int GetVersionFromFileName(string fileName)

@@ -1,8 +1,7 @@
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using NUnit.Framework;
-using Snow.Core;
 
 namespace Snow.Tests
 {
@@ -18,11 +17,21 @@ namespace Snow.Tests
                 Directory.CreateDirectory(DataDir);
         }
 
-        public static void SafeDeleteDocument<TDocument>(string key)
+        public static void SafeDeleteDocument<TDocument>(string key) where TDocument : class
         {
-            var documentFileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            var file = new DocumentFile<TDocument>(key, new DateTimeNow(), documentFileNameProvider, DateTime.Now);
-            file.Delete();
+            try
+            {
+                var di = new DirectoryInfo(String.Format("{0}\\{1}\\{2}", DataDir, DatabaseName, typeof (TDocument).FullName));
+                var files = di.GetFiles(key + "*");
+                foreach (var fileInfo in files)
+                {
+                    fileInfo.Delete();
+                }
+            }
+            catch (Exception)
+            {
+                
+            }
         }
     }
 }

@@ -27,11 +27,11 @@ namespace Snow.Core
             _serializer = serializer;
             _fileNameProvider = fileNameProvider;
             SessionGuid = Guid.NewGuid();
-            _sessionStamp = DateTime.Now;
             _sessionIndexer = new SessionIndexer(SessionGuid, fileNameProvider);
             _resourceManager = new TransactionalResourceManager(fileNameProvider, SessionGuid);
 
             _trx = new TransactionScope(TransactionScopeOption.Required);
+            _sessionStamp = Transaction.Current.TransactionInformation.CreationTime;
             _resourceManager.Enlist();
         }
 

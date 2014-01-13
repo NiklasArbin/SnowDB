@@ -52,7 +52,6 @@ namespace Snow.Core
             {
                 lucene.Create();
             }
-
         }
 
         public IDocumentSession OpenSession()

@@ -7,28 +7,28 @@ using Snow.Core;
 namespace Snow.Tests
 {
     [TestFixture]
-    [Ignore]
     public class IsolationTests
     {
-        private const string Key = "09915C3D-520A-4AB8-9286-C30CEF009C6C";
-
         [Test]
         public void A_new_document_saved_in_a_nested_transaction_should_not_be_visible_in_the_outer_transaction()
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
 
+            var key = "D0AE63DC-F497-430F-B8ED-73B64F2863C2";
+            TestSetup.SafeDeleteDocument<TestDocument>(key);
+
             using (var outer = new TransactionScope())
             {
                 using (var session1 = store.OpenSession())
                 {
-                    session1.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, Key);
+                    session1.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, key);
                 }
 
                 using (var inner = new TransactionScope())
                 {
                     using (var session2 = store.OpenSession())
                     {
-                        session2.Invoking(s => s.Get<TestDocument>(Key)).ShouldThrow<DocumentNotFoundException>();
+                        session2.Invoking(s => s.Get<TestDocument>(key)).ShouldThrow<DocumentNotFoundException>();
                     }
                     inner.Complete();
                 }
@@ -41,20 +41,25 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
 
+            var key = "E014CF2F-F77B-4F28-A90D-1BF53F10B57E";
+            TestSetup.SafeDeleteDocument<TestDocument>(key);
+
             using (var outer = new TransactionScope())
             {
+                
+
                 using (var nestedButSeperate = new TransactionScope(TransactionScopeOption.RequiresNew))
                 {
                     using (var session1 = store.OpenSession())
                     {
-                        session1.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, Key);
+                        session1.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, key);
                     }
                     nestedButSeperate.Complete();
                 }
 
                 using (var session2 = store.OpenSession())
                 {
-                    session2.Invoking(s => s.Get<TestDocument>(Key)).ShouldThrow<DocumentNotFoundException>();
+                    session2.Invoking(s => s.Get<TestDocument>(key)).ShouldThrow<DocumentNotFoundException>();
                 }
 
                 outer.Complete();
@@ -66,9 +71,12 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
 
+            var key = "D0AE63DC-F497-430F-B8ED-73B64F2863C3";
+            TestSetup.SafeDeleteDocument<TestDocument>(key);
+
             using (var session = store.OpenSession())
             {
-                session.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, Key);
+                session.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, key);
             }
 
             using (var outer = new TransactionScope())
@@ -77,14 +85,14 @@ namespace Snow.Tests
                 {
                     using (var session1 = store.OpenSession())
                     {
-                        session1.Delete<TestDocument>(Key);
+                        session1.Delete<TestDocument>(key);
                     }
                     nestedButSeperate.Complete();
                 }
 
                 using (var session2 = store.OpenSession())
                 {
-                    session2.Invoking(s => s.Get<TestDocument>(Key)).ShouldNotThrow<DocumentNotFoundException>();
+                    session2.Invoking(s => s.Get<TestDocument>(key)).ShouldNotThrow<DocumentNotFoundException>();
                 }
                 outer.Complete();
             }
@@ -95,9 +103,12 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
 
+            var key = "D0AE63DC-F497-430F-B8ED-73B64F2863C4";
+            TestSetup.SafeDeleteDocument<TestDocument>(key);
+
             using (var session = store.OpenSession())
             {
-                session.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, Key);
+                session.Save(new TestDocument { SomeInt = 1, SomeString = "1" }, key);
             }
 
             using (var outer = new TransactionScope())
@@ -106,27 +117,22 @@ namespace Snow.Tests
                 {
                     using (var session1 = store.OpenSession())
                     {
-                        var doc = session1.Get<TestDocument>(Key);
+                        var doc = session1.Get<TestDocument>(key);
                         doc.SomeInt = 2;
-                        session1.Save(doc, Key);
+                        session1.Save(doc, key);
                     }
                     nestedButSeperate.Complete();
                 }
 
                 using (var session2 = store.OpenSession())
                 {
-                    var docThatShouldNotHaveBeenChanged = session2.Get<TestDocument>(Key);
+                    var docThatShouldNotHaveBeenChanged = session2.Get<TestDocument>(key);
                     docThatShouldNotHaveBeenChanged.SomeInt.Should().Be(1);
                 }
                 outer.Complete();
             }
         }
 
-        [TearDown]
-        public void TearDown()
-        {
-            var documentFileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            TestSetup.SafeDeleteDocument<TestDocument>(Key);
-        }
+       
     }
 }

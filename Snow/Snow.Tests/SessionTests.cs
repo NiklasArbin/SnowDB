@@ -8,21 +8,17 @@ namespace Snow.Tests
     [TestFixture]
     public class SessionTests
     {
-        private const string Key = "98CD87C0-1631-4CB9-BFC6-306CCBD15C8F";
         private const string NonExistingKey = "86DF4E87-35DC-489F-BA13-2A802AB9A693";
 
-        [TearDown]
-        public void TearDown()
-        {
-            var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-            TestSetup.SafeDeleteDocument<TestDocument>(Key);
-            TestSetup.SafeDeleteDocument<TestDocument2>(Key);
-        }
-
+        
         [Test]
         public void Get_should_throw_DocumentNotFoundException_for_non_existing_document()
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            
+            var Key = "2B8EB412-2E39-4661-85E1-D1EAF06F74BF";
+            TestSetup.SafeDeleteDocument<TestDocument>(Key);
+
             using (var session = store.OpenSession())
             {
                 session.Invoking(x => x.Get<TestDocument>(NonExistingKey)).ShouldThrow<DocumentNotFoundException>();
@@ -46,6 +42,8 @@ namespace Snow.Tests
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
 
+            var Key = "2B8EB412-2E39-4661-85E1-D2EAF06F74BF";
+            TestSetup.SafeDeleteDocument<TestDocument>(Key);
 
             var document = new TestDocument
             {
@@ -67,6 +65,9 @@ namespace Snow.Tests
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
+
+            var Key = "2B8EB412-2E39-4661-85E1-D1EAF06F75BF";
+            TestSetup.SafeDeleteDocument<TestDocument>(Key);
 
             var document = new TestDocument
             {
@@ -95,6 +96,9 @@ namespace Snow.Tests
         public void Get_should_retrieve_the_document_with_data_intact()
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+
+            var Key = "B5550A31-B28F-4011-9240-A613D5DE82C1";
+            TestSetup.SafeDeleteDocument<TestDocument>(Key);
             
             var document = new TestDocument
             {
@@ -123,6 +127,9 @@ namespace Snow.Tests
         public void Save_should_be_able_to_save_two_different_types_of_documents_with_the_same_key()
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+
+            var Key = "D84A682F-8300-4F98-A459-D4C40CC8064C";
+            TestSetup.SafeDeleteDocument<TestDocument>(Key);
 
             var document = new TestDocument
             {
