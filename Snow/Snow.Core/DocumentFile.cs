@@ -53,7 +53,7 @@ namespace Snow.Core
             return new FileInfo(String.Format("{0}\\{1}.0.{2}", _documentDirectory.FullName, key, "json"));
         }
 
-        private FileInfo GetFileInfoForWriteAccess(string key)
+        private Stream GetFileStreamForWriteAccess(string key)
         {
             var searchPattern = String.Format("{0}.*.{1}", key, "json");
             var fileInfo =
@@ -64,10 +64,10 @@ namespace Snow.Core
             if (fileInfo != null)
             {
                 var nextVersion = GetVersionFromFileName(fileInfo.Name) + 1;
-                return new FileInfo(String.Format("{0}\\{1}.{2}.{3}", _documentDirectory.FullName, key, nextVersion, "json"));
+                return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.{2}.{3}", _documentDirectory.FullName, key, nextVersion, "json")));
             }
 
-            return new FileInfo(String.Format("{0}\\{1}.0.{2}", _documentDirectory.FullName, key, "json"));
+            return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.0.{2}", _documentDirectory.FullName, key, "json")));
         }
 
         private int GetVersionFromFileName(string fileName)
@@ -111,7 +111,7 @@ namespace Snow.Core
             {
                 try
                 {
-                    return fileInfo.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+                    return fileInfo.Open(FileMode.CreateNew, FileAccess.Write, FileShare.None);
                 }
                 catch (IOException e)
                 {
@@ -161,8 +161,7 @@ namespace Snow.Core
 
         public void Write(string value)
         {
-            var fileToWrite = GetFileInfoForWriteAccess(_key);
-            using (var stream = new StreamWriter(OpenFileForWriteAccess(fileToWrite)))
+            using (var stream = new StreamWriter(GetFileStreamForWriteAccess(_key)))
             {
                 stream.Write(value);
             }
