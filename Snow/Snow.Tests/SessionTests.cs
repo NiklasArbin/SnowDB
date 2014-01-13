@@ -95,9 +95,7 @@ namespace Snow.Tests
         public void Get_should_retrieve_the_document_with_data_intact()
         {
             var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
-            var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
-
-
+            
             var document = new TestDocument
             {
                 SomeInt = 1,

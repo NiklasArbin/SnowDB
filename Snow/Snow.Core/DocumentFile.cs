@@ -39,7 +39,7 @@ namespace Snow.Core
 
         private FileInfo GetFileInfoForReadAccess(string key)
         {
-            var searchPattern = String.Format("{0}.*.{1}", key, "json");
+            var searchPattern = String.Format("{0}.*", key);
             var fileInfo =
                 _documentDirectory.GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
                     .Where(x => x.LastWriteTime <= _sessionStamp)
@@ -53,12 +53,11 @@ namespace Snow.Core
             return new FileInfo(String.Format("{0}\\{1}.0.{2}", _documentDirectory.FullName, key, "json"));
         }
 
-        private Stream GetFileStreamForWriteAccess(string key)
+        private FileStream GetFileStreamForWriteAccess(string key)
         {
             var searchPattern = String.Format("{0}.*.{1}", key, "json");
             var fileInfo =
                 _documentDirectory.GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
-                    .Where(x => x.LastWriteTime <= _sessionStamp)
                     .OrderByDescending(x => x.LastWriteTime)
                     .FirstOrDefault();
             if (fileInfo != null)
@@ -68,6 +67,23 @@ namespace Snow.Core
             }
 
             return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.0.{2}", _documentDirectory.FullName, key, "json")));
+        }
+
+        private FileStream GetFileInfoForDelete(string key)
+        {
+            var searchPattern = String.Format("{0}.*", key);
+            _documentDirectory.Refresh();
+            var fileInfo =
+                _documentDirectory.GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
+                    .OrderByDescending(x => x.LastWriteTime)
+                    .FirstOrDefault();
+            if (fileInfo != null)
+            {
+                var nextVersion = GetVersionFromFileName(fileInfo.Name) + 1;
+                return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.{2}.{3}", _documentDirectory.FullName, key, nextVersion, "deleted")));
+            }
+
+            return OpenFileForWriteAccess(new FileInfo(String.Format("{0}\\{1}.0.{2}", _documentDirectory.FullName, key, "deleted")));
         }
 
         private int GetVersionFromFileName(string fileName)
@@ -159,35 +175,21 @@ namespace Snow.Core
         {
             get
             {
-                return GetFileInfoForReadAccess(_key).Exists;
+                var fileInfo = GetFileInfoForReadAccess(_key);
+                if (fileInfo.Exists)
+                {
+                    return fileInfo.Extension != ".deleted";
+                }
+                return false;
             }
         }
 
         public void Delete()
         {
-            //var initalAccessTime = _dateTimeNow.Now;
-            //while ((_dateTimeNow.Now - initalAccessTime) < MaxWaitForFile)
-            //{
-            //    try
-            //    {
-            //        Unlock();
-            //        _fileInfo.Delete();
-            //        return;
-            //    }
-            //    catch (IOException e)
-            //    {
-            //        if (e.Message.StartsWith("The process cannot access the file"))
-            //        {
-            //            Thread.Sleep(50);
-            //        }
-            //        else
-            //        {
-            //            throw;
-            //        }
-
-            //    }
-            //}
-            //throw new DocumentFileTimeoutException("Timeout occured when trying to access the file {0}".FormatWith(_fileInfo.FullName));
+            using (var stream = GetFileInfoForDelete(_key))
+            {
+                //Just touch the file.
+            }
         }
 
 
