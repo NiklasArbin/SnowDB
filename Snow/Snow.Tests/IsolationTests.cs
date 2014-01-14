@@ -12,7 +12,7 @@ namespace Snow.Tests
         [Test]
         public void A_new_document_saved_in_a_nested_transaction_should_not_be_visible_in_the_outer_transaction()
         {
-            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var store = TestBootStrapper.Container.Resolve<IDocumentStore>();
 
             var key = "D0AE63DC-F497-430F-B8ED-73B64F2863C2";
             TestSetup.SafeDeleteDocument<TestDocument>(key);
@@ -39,7 +39,7 @@ namespace Snow.Tests
         [Test]
         public void A_new_document_saved_in_a_seperate_transaction_should_not_be_visible_in_a_previously_started_transaction()
         {
-            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var store = TestBootStrapper.Container.Resolve<IDocumentStore>();
 
             var key = "E014CF2F-F77B-4F28-A90D-1BF53F10B57E";
             TestSetup.SafeDeleteDocument<TestDocument>(key);
@@ -69,7 +69,7 @@ namespace Snow.Tests
         [Test]
         public void A_document_deleted_in_a_seperate_transaction_should_not_be_deleted_in_a_previously_started_transaction()
         {
-            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var store = TestBootStrapper.Container.Resolve<IDocumentStore>();
 
             var key = "D0AE63DC-F497-430F-B8ED-73B64F2863C3";
             TestSetup.SafeDeleteDocument<TestDocument>(key);
@@ -101,7 +101,7 @@ namespace Snow.Tests
         [Test]
         public void A_document_changed_in_a_seperate_transaction_should_not_be_deleted_in_a_previously_started_transaction()
         {
-            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var store = TestBootStrapper.Container.Resolve<IDocumentStore>();
 
             var key = "D0AE63DC-F497-430F-B8ED-73B64F2863C4";
             TestSetup.SafeDeleteDocument<TestDocument>(key);
