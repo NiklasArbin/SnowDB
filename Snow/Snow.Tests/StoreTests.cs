@@ -20,7 +20,7 @@ namespace Snow.Tests
         [Test]
         public void OpenSession_should_return_a_new_session()
         {
-            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var store = TestBootStrapper.Container.Resolve<IDocumentStore>();
 
             using (var session = store.OpenSession())
             {

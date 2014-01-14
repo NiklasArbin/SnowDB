@@ -14,7 +14,7 @@ namespace Snow.Tests
         [Test]
         public void Rollback_of_a_save_should_not_have_saved_a_new_document()
         {
-            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var store = TestBootStrapper.Container.Resolve<IDocumentStore>();
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
 
             var document = new TestDocument
@@ -41,7 +41,7 @@ namespace Snow.Tests
         [Test]
         public void Rollback_of_a_delete_should_not_have_deleted_the_document()
         {
-            var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+            var store = TestBootStrapper.Container.Resolve<IDocumentStore>();
             var fileNameProvider = new DocumentFileNameProvider(TestSetup.DataDir, TestSetup.DatabaseName);
 
             var document = new TestDocument
@@ -93,7 +93,7 @@ namespace Snow.Tests
 
             using (var trx = new TransactionScope(TransactionScopeOption.RequiresNew))
             {
-                var store = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
+                var store = TestBootStrapper.Container.Resolve<IDocumentStore>();
                 using (var session = store.OpenSession())
                 {
                     foreach (var guid in guids)

@@ -32,6 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\packages\Castle.Core.3.2.2\lib\net45\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Windsor">
+      <HintPath>..\packages\Castle.Windsor.3.2.1\lib\net45\Castle.Windsor.dll</HintPath>
+    </Reference>
     <Reference Include="fastjson, Version=2.0.0.0, Culture=neutral, PublicKeyToken=6b75a806b86095cd, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\fastJSON.2.0.26\lib\net40\fastjson.dll</HintPath>
@@ -63,6 +69,8 @@
   <ItemGroup>
     <Compile Include="DocumentFileTests.cs" />
     <Compile Include="FlattenJsonTests.cs" />
+    <Compile Include="IoC\StoreInstaller.cs" />
+    <Compile Include="TestBootStrapper.cs" />
     <Compile Include="IsolationTests.cs" />
     <Compile Include="TestDocument.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
