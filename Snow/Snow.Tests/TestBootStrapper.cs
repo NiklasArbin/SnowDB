@@ -10,6 +10,7 @@ namespace Snow.Tests
         public static WindsorContainer Container;
 
         [SetUp]
+        [NCrunch.Framework.ExclusivelyUses("Bootstrapper")]
         public void Setup()
         {
             Container = new WindsorContainer();
@@ -17,6 +18,7 @@ namespace Snow.Tests
         }
 
         [TearDown]
+        [NCrunch.Framework.ExclusivelyUses("Bootstrapper")]
         public void TearDown()
         {
             Container.Dispose();
