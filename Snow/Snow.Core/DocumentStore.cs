@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
-using System.Transactions;
 using Snow.Core.Extensions;
 using Snow.Core.Serializers;
+using Snow.Core.Transactions;
 
 namespace Snow.Core
 {
@@ -11,7 +11,10 @@ namespace Snow.Core
     {
         public string DatabaseName { get; set; }
         public string DataLocation { get; set; }
+        private bool IsInitalized { get; set; }
         private IDocumentFileNameProvider _fileNameProvider;
+        private ITransactionCounter _transactionCounter;
+        private readonly object _lock = new object();
 
         public DocumentStore()
         {
@@ -47,17 +50,34 @@ namespace Snow.Core
             {
                 Directory.CreateDirectory(dbDir + "\\trx");
             }
+            _transactionCounter = TransactionCounter.GetInstance(dbDir + "\\trx");
             var lucene = _fileNameProvider.GetLuceneRootDirectory();
             if (!lucene.Exists)
             {
                 lucene.Create();
             }
+            IsInitalized = true;
         }
 
         public IDocumentSession OpenSession()
         {
-            Initialize();
-            return new DocumentSession(this, new JsonNetSerializer(), _fileNameProvider);
+            lock (_lock)
+            {
+                if (!IsInitalized)
+                {
+                    Initialize();
+                }
+                return new DocumentSession(this, new JsonNetSerializer(), _fileNameProvider, _transactionCounter);
+            }
+        }
+
+        public void Dispose()
+        {
+            lock (_lock)
+            {
+                if (_transactionCounter != null)
+                    _transactionCounter.Dispose();
+            }
         }
     }
 }

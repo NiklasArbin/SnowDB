@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Snow.Core.Transactions
 {
-    internal interface ITransactionCounter : IDisposable
+    public interface ITransactionCounter : IDisposable
     {
         int Current();
         int Next();
@@ -16,11 +16,23 @@ namespace Snow.Core.Transactions
         private readonly StreamWriter _writer;
         private readonly object _lock = new object();
 
-        public TransactionCounter(string directory)
+        private static ITransactionCounter _instance;
+
+        private TransactionCounter(string directory)
         {
-            _fileStream = File.Open(String.Format("{0}\\{1}", directory, "snow.transaction.counter"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            _reader = new StreamReader(_fileStream);
-            _writer = new StreamWriter(_fileStream);
+            lock (_lock)
+            {
+                _fileStream = File.Open(String.Format("{0}\\{1}", directory, "snow.transaction.counter"), mode: FileMode.OpenOrCreate, access: FileAccess.ReadWrite, share: FileShare.None);
+                _reader = new StreamReader(_fileStream);
+                _writer = new StreamWriter(_fileStream);
+            }
+        }
+
+        public static ITransactionCounter GetInstance(string directory)
+        {
+            if (_instance == null)
+                _instance = new TransactionCounter(directory);
+            return _instance;
         }
 
         public int Current()
@@ -46,7 +58,9 @@ namespace Snow.Core.Transactions
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            if (_fileStream != null)
+                _fileStream.Close();
+
         }
     }
 }

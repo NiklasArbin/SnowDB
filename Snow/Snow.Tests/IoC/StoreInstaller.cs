@@ -10,8 +10,11 @@ namespace Snow.Tests.IoC
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
             var docStore = new DocumentStore { DataLocation = TestSetup.DataDir, DatabaseName = TestSetup.DatabaseName };
-            container.Register(
-                Component.For<IDocumentStore>().Instance(docStore));
+            using (docStore.OpenSession())
+            {
+                container.Register(
+                    Component.For<IDocumentStore>().Named("ExclusiveName").Instance(docStore));
+            }
         }
 
     }

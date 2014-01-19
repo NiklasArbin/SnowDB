@@ -1,6 +1,7 @@
 ﻿using Castle.Windsor;
 using Castle.Windsor.Installer;
 using NUnit.Framework;
+using Snow.Core;
 
 namespace Snow.Tests
 {
@@ -10,7 +11,7 @@ namespace Snow.Tests
         public static WindsorContainer Container;
 
         [SetUp]
-        [NCrunch.Framework.ExclusivelyUses("Bootstrapper")]
+        [NCrunch.Framework.Serial]
         public void Setup()
         {
             Container = new WindsorContainer();
@@ -18,9 +19,11 @@ namespace Snow.Tests
         }
 
         [TearDown]
-        [NCrunch.Framework.ExclusivelyUses("Bootstrapper")]
+        [NCrunch.Framework.Serial]
         public void TearDown()
         {
+            var store = Container.Resolve<IDocumentStore>();
+            store.Dispose();
             Container.Dispose();
         }
     }

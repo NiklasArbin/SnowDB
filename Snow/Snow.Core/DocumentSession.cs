@@ -4,6 +4,7 @@ using log4net;
 using Snow.Core.Lucene;
 using Snow.Core.Operation;
 using Snow.Core.Serializers;
+using Snow.Core.Transactions;
 
 namespace Snow.Core
 {
@@ -14,6 +15,7 @@ namespace Snow.Core
 
         private readonly IDocumentStore _store;
         private readonly IDocumentFileNameProvider _fileNameProvider;
+        private readonly ITransactionCounter _transactionCounter;
         private readonly IDocumentSerializer _serializer;
         private readonly ISessionIndexer _sessionIndexer;
         public Guid SessionGuid { get; private set; }
@@ -21,11 +23,12 @@ namespace Snow.Core
         private TransactionScope _trx;
         private DateTime _sessionStamp;
 
-        public DocumentSession(IDocumentStore store, IDocumentSerializer serializer, IDocumentFileNameProvider fileNameProvider)
+        public DocumentSession(IDocumentStore store, IDocumentSerializer serializer, IDocumentFileNameProvider fileNameProvider, ITransactionCounter transactionCounter)
         {
             _store = store;
             _serializer = serializer;
             _fileNameProvider = fileNameProvider;
+            _transactionCounter = transactionCounter;
             SessionGuid = Guid.NewGuid();
             _sessionIndexer = new SessionIndexer(SessionGuid, fileNameProvider);
             _resourceManager = new TransactionalResourceManager(fileNameProvider, SessionGuid);

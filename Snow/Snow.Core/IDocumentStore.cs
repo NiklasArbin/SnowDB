@@ -1,6 +1,8 @@
-﻿namespace Snow.Core
+﻿using System;
+
+namespace Snow.Core
 {
-    public interface IDocumentStore
+    public interface IDocumentStore : IDisposable
     {
         IDocumentSession OpenSession();
         string DatabaseName { get; }

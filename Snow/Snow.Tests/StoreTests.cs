@@ -1,12 +1,14 @@
 ﻿using System;
 using System.IO;
 using FluentAssertions;
+using NCrunch.Framework;
 using NUnit.Framework;
 using Snow.Core;
 
 namespace Snow.Tests
 {
     [TestFixture]
+    [ExclusivelyUses("Bootstrapper")]
     public class StoreTests
     {
         [Test]
